@@ -8,7 +8,7 @@
     - 充実したデータ編集機能
     - 簡単なデータ集計機能
 
-![説明画像](https://user-images.githubusercontent.com/35160405/34715288-6426df06-f56f-11e7-8fc6-2276d4875ad6.jpg)
+![説明画像](https://user-images.githubusercontent.com/35160405/34756823-c64761b4-f610-11e7-826f-1d2cb767997d.jpg)
 
 ###### 詳しくはソースコード内の使用例をみてね
 
