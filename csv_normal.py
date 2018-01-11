@@ -112,7 +112,7 @@
 #       +--------+------------+------------+------------+------+----------+----------+----------+
 #       
 #       
-#       #print2_borderプロパティで枠の種類を変えられる(枠の定義は簡単にできるためカスタマイズ可能)
+#       #print2_borderプロパティで枠の種類を変えられる
 #       >>> c.print2_border = 'Simple'
 #       >>> c.print2()
 #        Name     Strength     Buttle Power Birthdate    Sex    Race       Height(cm) Weight(kg) 
@@ -137,6 +137,33 @@
 #       |Krillin |good        |      75_000|Age-736-year|Male  |Earthling |       153|        45|
 #       |Yamcha  |weak        |       1_480|Age-733-year|Male  |Earthling |       183|        68|
 #       +--------+------------+------------+------------+------+----------+----------+----------+
+#       
+#       
+#       #枠は簡単にカスタマイズ可能
+#       >>> csv.border_patterns['custom_1']="""
+#       ◇─◇─◇
+#       │　│　│
+#       ◇─◇─◇
+#       │　│　│
+#       ◇─◇─◇
+#       """
+#       >>> c.print2_border = 'custom_1'
+#       >>> c.print2()
+#       ◇────◇──────◇──────◇──────◇───◇─────◇─────◇─────◇
+#       │Name    │Strength    │Buttle Power│Birthdate   │Sex   │Race      │Height(cm)│Weight(kg)│
+#       ◇────◇──────◇──────◇──────◇───◇─────◇─────◇─────◇
+#       │Goku    │very strong │   3_000_000│Age-737-year│Male  │Saiyan    │       175│        62│
+#       ◇────◇──────◇──────◇──────◇───◇─────◇─────◇─────◇
+#       │Vegeta  │very strong │   2_000_000│Age-732-year│Male  │Saiyan    │       164│        56│
+#       ◇────◇──────◇──────◇──────◇───◇─────◇─────◇─────◇
+#       │Piccolo │strong      │   1_000_000│Age-753-year│Male  │Namekian  │       226│       116│
+#       ◇────◇──────◇──────◇──────◇───◇─────◇─────◇─────◇
+#       │Bulma   │very weak   │           3│Age-733-year│Female│Earthling │       165│        49│
+#       ◇────◇──────◇──────◇──────◇───◇─────◇─────◇─────◇
+#       │Krillin │good        │      75_000│Age-736-year│Male  │Earthling │       153│        45│
+#       ◇────◇──────◇──────◇──────◇───◇─────◇─────◇─────◇
+#       │Yamcha  │weak        │       1_480│Age-733-year│Male  │Earthling │       183│        68│
+#       ◇────◇──────◇──────◇──────◇───◇─────◇─────◇─────◇
 #       
 #       
 #       #reset_propertyメソッドで各プロパティの設定をリセットできる
@@ -191,6 +218,22 @@
 #             6|Yamcha  |weak        |        1480|Age-733-year|Male  |Earthling |       183|        68|6      
 #        ......+--------+------------+------------+------------+------+----------+----------+----------+...... 
 #         index:0       :1           :2           :3           :4     :5         :6         :7         :index  
+#       
+#       
+#       #print_idx2_borderプロパティで枠の種類を変えられる
+#       >>> c.print_idx2_border = 'Index_simple'
+#       >>> c.print_idx2()
+#         index 0        1            2            3            4      5          6          7          index  
+#        ------ -------- ------------ ------------ ------------ ------ ---------- ---------- ---------- ------ 
+#             0|Name     Strength     Buttle Power Birthdate    Sex    Race       Height(cm) Weight(kg)|0      
+#             1|Goku     very strong       3000000 Age-737-year Male   Saiyan            175         62|1      
+#             2|Vegeta   very strong       2000000 Age-732-year Male   Saiyan            164         56|2      
+#             3|Piccolo  strong            1000000 Age-753-year Male   Namekian          226        116|3      
+#             4|Bulma    very weak               3 Age-733-year Female Earthling         165         49|4      
+#             5|Krillin  good                75000 Age-736-year Male   Earthling         153         45|5      
+#             6|Yamcha   weak                 1480 Age-733-year Male   Earthling         183         68|6      
+#        ------ -------- ------------ ------------ ------------ ------ ---------- ---------- ---------- ------ 
+#         index 0        1            2            3            4      5          6          7          index  
 #       
 #       
 #       #csvデータへの問い合わせが可能
@@ -840,7 +883,7 @@
 #       
 
 __all__ = ['csv', 'load', 'str2csv', 'list2csv', 'dict2csv', 'str2list', 'list2str', 'row2column', 'chk_border']
-__version__ = '3.0.2'
+__version__ = '3.0.3'
 __author__ = 'ShiraiTK'
 
 from collections import Counter, defaultdict
@@ -863,6 +906,7 @@ else:
 #------------------------------
 class csv(object):
     _DEFAULT_PRINT2_BORDER = 'Standard'
+    _DEFAULT_PRINT_IDX2_BORDER = 'Index'
     _DEFAULT_GROUPING_BORDER = True
     _DEFAULT_GROUPING_OPT = False
     _DEFAULT_PRECISION = 6
@@ -888,6 +932,7 @@ class csv(object):
         プロパティをデフォルト値に戻す
         """
         self.print2_border = csv._DEFAULT_PRINT2_BORDER #print2メソッドで使用するborder_pattern
+        self.print_idx2_border = csv._DEFAULT_PRINT_IDX2_BORDER #print_idx2メソッドで使用するborder_pattern
         self.grouping_border = csv._DEFAULT_GROUPING_BORDER #Trueにすると枠のグループ化機能が有効になる
         self.grouping_opt = csv._DEFAULT_GROUPING_OPT #Trueにすると数字の可読性があがる(千倍ごとの数字の区切り文字にアンダースコアを使う: 12345 -> 12_345)
         self.precision = csv._DEFAULT_PRECISION #floatの精度(小数点以下の桁数)
@@ -901,6 +946,7 @@ class csv(object):
         filterメソッドやmapメソッドなど、処理結果を新しいcsvインスタンスとして返すメソッドで使用する
         """
         self.print2_border = src.print2_border
+        self.print_idx2_border = src.print_idx2_border
         self.grouping_border = src.grouping_border
         self.grouping_opt = src.grouping_opt
         self.precision = src.precision
@@ -1006,7 +1052,7 @@ class csv(object):
         tail = (tail + 1) * 2 if tail is not None else tail
 
         with self._add_idx_temporarily():
-            wrap_csv = self.wrap_border('index', aligns={0:'>'}) #文字列のインデックスを右寄りに配置
+            wrap_csv = self.wrap_border(self.print_idx2_border, aligns={0:'>'}) #文字列のインデックスを右寄りに配置
             strings = wrap_csv._sprint(head=head, tail=tail)
 
             if self.print_file['file'] is not None:
@@ -2250,7 +2296,7 @@ border_patterns = {
 """,
 
 #print_idx2用
-    'index': """
+    'Index': """
          
   : : :  
  .+-+-+. 
@@ -2261,9 +2307,20 @@ border_patterns = {
   : : :  
          
 """,
+    'Index_simple': """
+         
+         
+ - - - - 
+  |   |  
+         
+  |   |  
+ - - - - 
+         
+         
+""",
 
 #テスト用
-    'test': """
+    'Test': """
 ＡＢＣＤＥＦＧＨＩ
 Ｊ　Ｋ　Ｌ　Ｍ　Ｎ
 ＯＰＱＲＳＴＵＶＷ
