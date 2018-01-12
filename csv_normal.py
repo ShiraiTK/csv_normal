@@ -140,30 +140,30 @@
 #       
 #       
 #       #枠は簡単にカスタマイズ可能
-#       >>> csv.border_patterns['custom_1']="""
-#       ◇─◇─◇
-#       │　│　│
-#       ◇─◇─◇
-#       │　│　│
-#       ◇─◇─◇
+#       >>> csv.border_patterns['Custom_1']="""
+#       o-o-o
+#       | | |
+#       o-o-o
+#       | | |
+#       o-o-o
 #       """
-#       >>> c.print2_border = 'custom_1'
+#       >>> c.print2_border = 'Custom_1'
 #       >>> c.print2()
-#       ◇────◇──────◇──────◇──────◇───◇─────◇─────◇─────◇
-#       │Name    │Strength    │Buttle Power│Birthdate   │Sex   │Race      │Height(cm)│Weight(kg)│
-#       ◇────◇──────◇──────◇──────◇───◇─────◇─────◇─────◇
-#       │Goku    │very strong │   3_000_000│Age-737-year│Male  │Saiyan    │       175│        62│
-#       ◇────◇──────◇──────◇──────◇───◇─────◇─────◇─────◇
-#       │Vegeta  │very strong │   2_000_000│Age-732-year│Male  │Saiyan    │       164│        56│
-#       ◇────◇──────◇──────◇──────◇───◇─────◇─────◇─────◇
-#       │Piccolo │strong      │   1_000_000│Age-753-year│Male  │Namekian  │       226│       116│
-#       ◇────◇──────◇──────◇──────◇───◇─────◇─────◇─────◇
-#       │Bulma   │very weak   │           3│Age-733-year│Female│Earthling │       165│        49│
-#       ◇────◇──────◇──────◇──────◇───◇─────◇─────◇─────◇
-#       │Krillin │good        │      75_000│Age-736-year│Male  │Earthling │       153│        45│
-#       ◇────◇──────◇──────◇──────◇───◇─────◇─────◇─────◇
-#       │Yamcha  │weak        │       1_480│Age-733-year│Male  │Earthling │       183│        68│
-#       ◇────◇──────◇──────◇──────◇───◇─────◇─────◇─────◇
+#       o--------o------------o------------o------------o------o----------o----------o----------o
+#       |Name    |Strength    |Buttle Power|Birthdate   |Sex   |Race      |Height(cm)|Weight(kg)|
+#       o--------o------------o------------o------------o------o----------o----------o----------o
+#       |Goku    |very strong |   3_000_000|Age-737-year|Male  |Saiyan    |       175|        62|
+#       o--------o------------o------------o------------o------o----------o----------o----------o
+#       |Vegeta  |very strong |   2_000_000|Age-732-year|Male  |Saiyan    |       164|        56|
+#       o--------o------------o------------o------------o------o----------o----------o----------o
+#       |Piccolo |strong      |   1_000_000|Age-753-year|Male  |Namekian  |       226|       116|
+#       o--------o------------o------------o------------o------o----------o----------o----------o
+#       |Bulma   |very weak   |           3|Age-733-year|Female|Earthling |       165|        49|
+#       o--------o------------o------------o------------o------o----------o----------o----------o
+#       |Krillin |good        |      75_000|Age-736-year|Male  |Earthling |       153|        45|
+#       o--------o------------o------------o------------o------o----------o----------o----------o
+#       |Yamcha  |weak        |       1_480|Age-733-year|Male  |Earthling |       183|        68|
+#       o--------o------------o------------o------------o------o----------o----------o----------o
 #       
 #       
 #       #reset_propertyメソッドで各プロパティの設定をリセットできる
@@ -224,7 +224,7 @@
 #       >>> c.print_idx2_border = 'Index_simple'
 #       >>> c.print_idx2()
 #         index 0        1            2            3            4      5          6          7          index  
-#        ------ -------- ------------ ------------ ------------ ------ ---------- ---------- ---------- ------ 
+#               -------- ------------ ------------ ------------ ------ ---------- ---------- ----------        
 #             0|Name     Strength     Buttle Power Birthdate    Sex    Race       Height(cm) Weight(kg)|0      
 #             1|Goku     very strong       3000000 Age-737-year Male   Saiyan            175         62|1      
 #             2|Vegeta   very strong       2000000 Age-732-year Male   Saiyan            164         56|2      
@@ -232,7 +232,7 @@
 #             4|Bulma    very weak               3 Age-733-year Female Earthling         165         49|4      
 #             5|Krillin  good                75000 Age-736-year Male   Earthling         153         45|5      
 #             6|Yamcha   weak                 1480 Age-733-year Male   Earthling         183         68|6      
-#        ------ -------- ------------ ------------ ------------ ------ ---------- ---------- ---------- ------ 
+#               -------- ------------ ------------ ------------ ------ ---------- ---------- ----------        
 #         index 0        1            2            3            4      5          6          7          index  
 #       
 #       
@@ -2310,11 +2310,11 @@ border_patterns = {
     'Index_simple': """
          
          
- - - - - 
+   - -   
   |   |  
          
   |   |  
- - - - - 
+   - -   
          
          
 """,
