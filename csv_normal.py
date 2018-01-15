@@ -68,10 +68,10 @@
 #       
 #       #デフォルト設定では枠のグループ化機能が有効になっているため、
 #       #隣接するフィールド値が同じ場合は境界の枠が消えてグループ化される
-#       #   grouping_border:
+#       #   border_grouping:
 #       #       Falseで枠のグループ化機能を無効にできる
 #       #
-#       >>> c.grouping_border = False
+#       >>> c.border_grouping = False
 #       >>> c.print2()
 #       +--------+------------+------------+------------+------+----------+----------+----------+
 #       |Name    |Strength    |Buttle Power|Birthdate   |Sex   |Race      |Height(cm)|Weight(kg)|
@@ -250,7 +250,7 @@
 #       >>> 
 #       >>> c.get_field_idx('Earthling') #行列全体から検索
 #       (4, 5)
-#       >>> c.get_field_idx('Earthling', slice(5, None), slice(4, 6)) #行列範囲を絞って検索
+#       >>> c.get_field_idx('Earthling', slice(5, None), slice(5, 6)) #行列範囲を絞って検索
 #       (5, 5)
 #       >>> c.get_field_idx_all('Earthling') #地球人を全て検索
 #       [(4, 5), (5, 5), (6, 5)]
@@ -540,59 +540,109 @@
 #
 #----------------------------------------------------------------------------------------------------
 #       #文字列から簡単にcsvデータを作成できる
-#       #   printメソッドで出力される文字列をそのままcsv.str2csv関数の引数に使用できる
-#       #   色んな箇所のフィールド値を変更する場合は、printメソッドから出力された文字列をコピペ＆編集し
-#       #   csv.str2csv関数でcsvデータ化することで簡単に編集可能
+#       #フィールドを複数行で表示するmultiple-lines表示が可能(multiple-linesのデリミタはr'\n' == '\\n')
 #       #
 #       >>> z = csv.str2csv("""
+#       Name, Born, Occupation
+#       Graham\\nArthur\\nChapman, 1941, Comedian\\nwriter\\nactor
+#       John\\nMarwood\\nCleese, 1939, Actor\\nvoice actor\\ncomedian\\nscreenwriter\\nproducer
+#       Michael\\nEdward\\nPalin, 1943, Actor\\nwriter\\ntelevision\\npresenter\\ncomedian
+#       """)
+#       >>> 
+#       >>> z.trim() #空の行、空の列を削除
+#       >>> z.print2()
+#       +--------+----+------------+
+#       |Name    |Born|Occupation  |
+#       +--------+----+------------+
+#       |Graham  |1941|Comedian    |
+#       |Arthur  |    |writer      |
+#       |Chapman |    |actor       |
+#       +--------+----+------------+
+#       |John    |1939|Actor       |
+#       |Marwood |    |voice actor |
+#       |Cleese  |    |comedian    |
+#       |        |    |screenwriter|
+#       |        |    |producer    |
+#       +--------+----+------------+
+#       |Michael |1943|Actor       |
+#       |Edward  |    |writer      |
+#       |Palin   |    |television  |
+#       |        |    |presenter   |
+#       |        |    |comedian    |
+#       +--------+----+------------+
+#       >>> 
+#       >>> z.print_idx2()
+#         index:0       :1   :2           :index  
+#        ......+--------+----+------------+...... 
+#             0|Name    |Born|Occupation  |0      
+#        ......+--------+----+------------+...... 
+#             1|Graham  |1941|Comedian    |1      
+#              |Arthur  |    |writer      |       
+#              |Chapman |    |actor       |       
+#        ......+--------+----+------------+...... 
+#             2|John    |1939|Actor       |2      
+#              |Marwood |    |voice actor |       
+#              |Cleese  |    |comedian    |       
+#              |        |    |screenwriter|       
+#              |        |    |producer    |       
+#        ......+--------+----+------------+...... 
+#             3|Michael |1943|Actor       |3      
+#              |Edward  |    |writer      |       
+#              |Palin   |    |television  |       
+#              |        |    |presenter   |       
+#              |        |    |comedian    |       
+#        ......+--------+----+------------+...... 
+#         index:0       :1   :2           :index  
+#       >>>
+#       >>> z.multiple_lines = False #multiple_linesプロパティでmultiple-lines表示を切り替えられる
+#       >>> z.print2()
+#       +------------------------+----+----------------------------------------------------+
+#       |Name                    |Born|Occupation                                          |
+#       +------------------------+----+----------------------------------------------------+
+#       |Graham\nArthur\nChapman |1941|Comedian\nwriter\nactor                             |
+#       +------------------------+----+----------------------------------------------------+
+#       |John\nMarwood\nCleese   |1939|Actor\nvoice actor\ncomedian\nscreenwriter\nproducer|
+#       +------------------------+----+----------------------------------------------------+
+#       |Michael\nEdward\nPalin  |1943|Actor\nwriter\ntelevision\npresenter\ncomedian      |
+#       +------------------------+----+----------------------------------------------------+
+#       
+#       
+#       >>> t = csv.str2csv("""
 #       hoge, fuga, HOGE, FUGA
 #       a,b,c,d
 #       123,12345,1234567,123456789
 #       """)
 #       >>> 
-#       >>> z.trim() #空の行、空の列を削除
-#       >>> z.print()
+#       >>> t.trim() #空の行、空の列を削除
+#       >>> t.print()
 #       hoge, fuga , HOGE   , FUGA     
 #       a   , b    , c      , d        
 #        123, 12345, 1234567, 123456789
 #       
 #
-#       #printメソッドから出力された文字列を貼り付けてフィールド値を修正(HOGE->Hoge, FUGA->Fuga)
-#       >>> z = csv.str2csv('''
-#       hoge, fuga , Hoge   , Fuga     
-#       a   , b    , c      , d        
-#        123, 12345, 1234567, 123456789
-#        ''')
-#       >>> z.trim() #空の行、空の列を削除
-#       >>> z.print()
-#       hoge, fuga , Hoge   , Fuga     
-#       a   , b    , c      , d        
-#        123, 12345, 1234567, 123456789
-#       
-#       
 #       #列のインデックスを指定してcsvデータを再構築できる
-#       >>> z = z.arrange_columns(3,2,1,0)
-#       >>> z.print()
-#       Fuga     , Hoge   , fuga , hoge
+#       >>> t = t.arrange_columns(3,2,1,0)
+#       >>> t.print()
+#       FUGA     , HOGE   , fuga , hoge
 #       d        , c      , b    , a   
 #       123456789, 1234567, 12345,  123
 #       
 #       
 #       #行のインデックスを指定してcsvデータを再構築できる
-#       >>> z = z.arrange_rows(1,0,2)
-#       >>> z.print()
+#       >>> t = t.arrange_rows(1,0,2)
+#       >>> t.print()
 #       d        , c      , b    , a   
-#       Fuga     , Hoge   , fuga , hoge
+#       FUGA     , HOGE   , fuga , hoge
 #       123456789, 1234567, 12345,  123
 #       
 #
 #       #行列の回転もできる(右回転: rotate_right, 左回転: rotate_left)
-#       >>> z.rotate_right()
-#       >>> z.print()
-#       123_456_789, Fuga, d
-#         1_234_567, Hoge, c
-#            12_345, fuga, b
-#               123, hoge, a
+#       >>> t.rotate_right()
+#       >>> t.print()
+#       123456789, FUGA, d
+#         1234567, HOGE, c
+#           12345, fuga, b
+#             123, hoge, a
 #       
 #
 #----------------------------------------------------------------------------------------------------
@@ -801,23 +851,37 @@
 #       
 #       
 #       #誰と誰が同じ誕生日なのかな？
-#       #   func引数のデフォルト値はlambda fields: ' / '.join(map(str, fields))となっているので
+#       #   func引数のデフォルト値はlambda fields: r'\n'.join(map(str, fields))となっているので
 #       #   グループ化したフィールド値を並べるだけならば省略可能
 #       #
 #       >>> c.groupby(c['Birthdate'], c['Name'], row_start_idx=1).print2()
-#       +------------+--------------+
-#       |Birthdate   |Name          |
-#       +------------+--------------+
-#       |Age-737-year|Goku          |
-#       +------------+--------------+
-#       |Age-732-year|Vegeta        |
-#       +------------+--------------+
-#       |Age-753-year|Piccolo       |
-#       +------------+--------------+
-#       |Age-733-year|Bulma / Yamcha|
-#       +------------+--------------+
-#       |Age-736-year|Krillin       |
-#       +------------+--------------+
+#       +------------+--------+
+#       |Birthdate   |Name    |
+#       +------------+--------+
+#       |Age-737-year|Goku    |
+#       +------------+--------+
+#       |Age-732-year|Vegeta  |
+#       +------------+--------+
+#       |Age-753-year|Piccolo |
+#       +------------+--------+
+#       |Age-733-year|Bulma   |
+#       |            |Yamcha  |
+#       +------------+--------+
+#       |Age-736-year|Krillin |
+#       +------------+--------+
+#       >>> 
+#       >>> c.groupby(c['Sex'], row_start_idx=1).print2()
+#       +------+--------+------------+------------+------------+----------+----------+----------+
+#       |Sex   |Name    |Strength    |Buttle Power|Birthdate   |Race      |Height(cm)|Weight(kg)|
+#       +------+--------+------------+------------+------------+----------+----------+----------+
+#       |Male  |Goku    |very strong |     3000000|Age-737-year|Saiyan    |       175|        62|
+#       |      |Vegeta  |very strong |     2000000|Age-732-year|Saiyan    |       164|        56|
+#       |      |Piccolo |strong      |     1000000|Age-753-year|Namekian  |       226|       116|
+#       |      |Krillin |good        |       75000|Age-736-year|Earthling |       153|        45|
+#       |      |Yamcha  |weak        |        1480|Age-733-year|Earthling |       183|        68|
+#       +------+--------+------------+------------+------------+----------+----------+----------+
+#       |Female|Bulma   |very weak   |           3|Age-733-year|Earthling |       165|        49|
+#       +------+--------+------------+------------+------------+----------+----------+----------+
 #       
 #       
 #       #性別と種族でクロス集計
@@ -883,12 +947,13 @@
 #       
 
 __all__ = ['csv', 'load', 'str2csv', 'list2csv', 'dict2csv', 'str2list', 'list2str', 'row2column', 'chk_border']
-__version__ = '3.0.3'
+__version__ = '3.0.4'
 __author__ = 'ShiraiTK'
 
 from collections import Counter, defaultdict
 from contextlib import contextmanager
 from itertools import product, zip_longest
+import copy
 import io
 import os
 import re
@@ -907,17 +972,24 @@ else:
 class csv(object):
     _DEFAULT_PRINT2_BORDER = 'Standard'
     _DEFAULT_PRINT_IDX2_BORDER = 'Index'
-    _DEFAULT_GROUPING_BORDER = True
+    _DEFAULT_BORDER_GROUPING = True
+
+    _DEFAULT_MULTIPLE_LINES = True
+    _DEFAULT_MULTIPLE_LINES_DELIMITER = r'\n'
+
     _DEFAULT_GROUPING_OPT = False
     _DEFAULT_PRECISION = 6
     _DEFAULT_DISPLAY_DELIMITER = ', '
     _DEFAULT_HEAD = 5
     _DEFAULT_PRINT_FILE = {'file':None, 'encoding':None}
 
-    def __init__(self, csv_data=[['']]):
+    def __init__(self, csv_data=None):
         """
         csv_dataはリストの2次元配列( csv_dataの最小構成は[['']] )
         """
+        if csv_data is None:
+            csv_data = [['']]
+
         #csv_dataがリストの2次元配列かチェック
         if (isinstance(csv_data, list) and bool(csv_data) #csv_dataはリストで何か入っている
             and isinstance(csv_data[0], list) and bool(csv_data[0])): #入ってるのはリストで、さらに何か(データ)入っていればOK
@@ -933,7 +1005,11 @@ class csv(object):
         """
         self.print2_border = csv._DEFAULT_PRINT2_BORDER #print2メソッドで使用するborder_pattern
         self.print_idx2_border = csv._DEFAULT_PRINT_IDX2_BORDER #print_idx2メソッドで使用するborder_pattern
-        self.grouping_border = csv._DEFAULT_GROUPING_BORDER #Trueにすると枠のグループ化機能が有効になる
+        self.border_grouping = csv._DEFAULT_BORDER_GROUPING #Trueにすると枠のグループ化機能が有効になる
+
+        self.multiple_lines = csv._DEFAULT_MULTIPLE_LINES #Trueにするとフィールド値を_multiple_lines_delimiterで枠内改行して表示する
+        self._multiple_lines_delimiter = csv._DEFAULT_MULTIPLE_LINES_DELIMITER #フィールド値をmultiple-linesに変換するデリミタ
+
         self.grouping_opt = csv._DEFAULT_GROUPING_OPT #Trueにすると数字の可読性があがる(千倍ごとの数字の区切り文字にアンダースコアを使う: 12345 -> 12_345)
         self.precision = csv._DEFAULT_PRECISION #floatの精度(小数点以下の桁数)
         self._display_delimiter = csv._DEFAULT_DISPLAY_DELIMITER #表示用デリミタ
@@ -943,11 +1019,15 @@ class csv(object):
     def _copy_property(self, src):
         """
         src.csv以外のプロパティをsrcからコピーする
-        filterメソッドやmapメソッドなど、処理結果を新しいcsvインスタンスとして返すメソッドで使用する
+            filterメソッドやmapメソッドなど、処理結果を新しいcsvインスタンスとして返すメソッドで使用する
         """
         self.print2_border = src.print2_border
         self.print_idx2_border = src.print_idx2_border
-        self.grouping_border = src.grouping_border
+        self.border_grouping = src.border_grouping
+
+        self.multiple_lines = src.multiple_lines
+        self._multiple_lines_delimiter = src._multiple_lines_delimiter
+
         self.grouping_opt = src.grouping_opt
         self.precision = src.precision
         self._display_delimiter = src._display_delimiter
@@ -987,124 +1067,177 @@ class csv(object):
     def __str__(self):
         return self._sprint(head=self._head)
 
-    def _sprint(self, head=None, tail=None, header_aligns=None, aligns=None, widths=None):
+    def _sprint(self, head=None, tail=None, header_aligns=None, aligns=None, widths=None, _chk_multiple_lines=True):
         """
         self.csvの行列文字列を返す
             head: 先頭からの行数を指定
             tail: 最後尾からの行数を指定
+
+            _chk_multiple_lines: multiple-lines処理をするか否かのスイッチ
+                                 print2, print_idx2メソッドなどの枠付きでは枠の処理でmultiple-lines処理をするため不要となる
         """
         if tail is not None:
             head = None #tail優先
             tail = -tail #-tailで最後尾からのインデックスに変換
 
-        return _uniform_width(self.csv, row_start_idx=tail, row_end_idx=head, field_delimiter=self._display_delimiter,
+        return self._sprint_range(row_start_idx=tail, row_end_idx=head, 
+                                  header_aligns=header_aligns, aligns=aligns, widths=widths, _chk_multiple_lines=_chk_multiple_lines)
+
+    def _sprint_range(self, row_start_idx=0, row_end_idx=None, header_aligns=None, aligns=None, widths=None, _chk_multiple_lines=True):
+        """
+        指定された行範囲の文字列を返す
+            ※csvデータ文字列化の共通関数
+        """
+        if self.multiple_lines and _chk_multiple_lines:
+            m_csv, _ = self._extend_multiple_lines()
+            csv_data = self.csv if m_csv is None else m_csv.csv
+        else:
+            csv_data = self.csv
+
+        return _uniform_width(csv_data, row_start_idx=row_start_idx, row_end_idx=row_end_idx, field_delimiter=self._display_delimiter,
                               header_aligns=header_aligns, aligns=aligns, widths=widths, grouping_opt=self.grouping_opt, precision=self.precision)
 
     def print(self, head=None, tail=None):
         """
         self.csvを行列表示する
         """
-        strings = self._sprint(head=head, tail=tail)
-
-        if self.print_file['file'] is not None:
-            self._write_print_file(strings)
-        else:
-            print(strings)
+        with self._print_strings() as strings:
+            strings.append(self._sprint(head=head, tail=tail))
 
     def print2(self, head=None, tail=None):
         """
         self.csvの行列を枠で囲んで見やすくして表示する
         """
-        #head, tailを倍にする(枠を追加した分)
-        head = head * 2 if head is not None else head
-        tail = tail * 2 if tail is not None else tail
-
         wrap_csv = self.wrap_border(self.print2_border)
-        strings = wrap_csv._sprint(head=head, tail=tail)
-
-        if self.print_file['file'] is not None:
-            self._write_print_file(strings)
-        else:
-            print(strings)
+        with self._print_strings() as strings:
+            #multiple-linesの処理はwrap_borderメソッドで処理済み
+            strings.append(wrap_csv._sprint(head=head, tail=tail, _chk_multiple_lines=False))
 
     def print_idx(self, head=None, tail=None):
         """
         self.csvに行と列のインデックス情報を付け加えて行列表示する
         """
-        #head, tailを+1加算する(インデックスを追加した分)
-        head = head + 1 if head is not None else head
-        tail = tail + 1 if tail is not None else tail
-
-        with self._add_idx_temporarily():
-            strings = self._sprint(head=head, tail=tail, aligns={0:'>'}) #文字列のインデックスを右寄りに配置
-
-            if self.print_file['file'] is not None:
-                self._write_print_file(strings)
-            else:
-                print(strings)
+        idx_csv = self._add_idx()
+        with self._print_strings() as strings:
+            strings.append(idx_csv._sprint(head=head, tail=tail, aligns={0:'>'})) #文字列のインデックスを右寄りに配置
 
     def print_idx2(self, head=None, tail=None):
         """
         self.csvに行と列のインデックス情報を付け加え、さらに枠で囲んで見やすくした行列を表示する
         """
-        #head, tailを+1換算して倍にする(インデックス、枠を追加した分)
-        head = (head + 1) * 2 if head is not None else head
-        tail = (tail + 1) * 2 if tail is not None else tail
-
-        with self._add_idx_temporarily():
-            wrap_csv = self.wrap_border(self.print_idx2_border, aligns={0:'>'}) #文字列のインデックスを右寄りに配置
-            strings = wrap_csv._sprint(head=head, tail=tail)
-
-            if self.print_file['file'] is not None:
-                self._write_print_file(strings)
-            else:
-                print(strings)
-
-    @contextmanager
-    def _add_idx_temporarily(self):
-        """
-        行と列のインデックス表示のために、インデックスを一時的にself.csvに加える
-        (print_idxとprint_idx2の共通処理)
-        """
-        #前処理: インデックス用のデータを追加
-        self.row2column()
-        self.csv.insert(0, [str(i) for i in range(len(self.csv[0]))]) #左端の列に文字列のインデックス追加
-        self.csv.append([str(i) for i in range(len(self.csv[0]))]) #右端の列に文字列のインデックス追加
-        self.row2column()
-
-        max_col_num = max([len(row) for row in self.csv])
-        index = ['index'] + [str(i) for i in range(max_col_num-2)] + ['index'] #max_col_num-2: 前後の'index'分減らす
-        self.csv.insert(0, index) #先頭の行に文字列のインデックス追加
-        self.csv.append(index) #最後尾の行に文字列のインデックス追加
-
-        yield
-
-        #後処理: 追加したインデックス用データを削除
-        self.del_column(0)
-        self.del_column(-1)
-        del(self.csv[0])
-        del(self.csv[-1])
+        idx_csv = self._add_idx()
+        wrap_csv = idx_csv.wrap_border(idx_csv.print_idx2_border, aligns={0:'>'}) #文字列のインデックスを右寄りに配置
+        with self._print_strings() as strings:
+            #multiple-linesの処理はwrap_borderメソッドで処理済み
+            strings.append(wrap_csv._sprint(head=head, tail=tail, _chk_multiple_lines=False))
 
     def print_chg_format(self, head=None, tail=None, header_aligns=None, aligns=None, widths=None):
         """
         列のalignやwidthをカスタマイズして表示する
         """
-        strings = self._sprint(head=head, tail=tail,
-                               header_aligns=header_aligns, aligns=aligns, widths=widths)
+        with self._print_strings() as strings:
+            strings.append(self._sprint(head=head, tail=tail,
+                                        header_aligns=header_aligns, aligns=aligns, widths=widths))
 
-        if self.print_file['file'] is not None:
-            self._write_print_file(strings)
-        else:
-            print(strings)
-
-    def print_select_row(self, row_start_idx=0, row_end_idx=None):
+    def print_range(self, row_start_idx=0, row_end_idx=None):
         """
         self.csvを行列表示する
             指定した行のインデックス範囲を表示する
         """
-        strings = _uniform_width(self.csv, row_start_idx=row_start_idx, row_end_idx=row_end_idx, field_delimiter=self._display_delimiter, 
-                                 grouping_opt=self.grouping_opt, precision=self.precision)
+        with self._print_strings() as strings:
+            strings.append(self._sprint_range(row_start_idx=row_start_idx, row_end_idx=row_end_idx))
 
+    def _add_idx(self):
+        """
+        行と列のインデックス表示のために、インデックス情報を加えたcsvインスタンスを返す
+        (print_idxとprint_idx2の共通処理)
+        """
+        columns = row2column(self.csv)
+        columns.insert(0, [str(i) for i in range(len(columns[0]))]) #左端の列に文字列のインデックス追加
+        columns.append([str(i) for i in range(len(columns[0]))]) #右端の列に文字列のインデックス追加
+        rows = row2column(columns)
+
+        max_col_num = max([len(row) for row in rows])
+        index = ['index'] + [str(i) for i in range(max_col_num-2)] + ['index'] #max_col_num-2: 前後の'index'分減らす
+        rows.insert(0, index) #先頭の行に文字列のインデックス追加
+        rows.append(index) #最後尾の行に文字列のインデックス追加
+
+        idx_csv = csv(rows)
+        idx_csv._copy_property(self)
+        return idx_csv
+
+    def _extend_multiple_lines(self, border_csv=None):
+        """
+        self.csvの一行表現のmultiple-linesを複数行表現に展開したcsvインスタンスを返す(multiple-linesが無ければNoneを返す)
+            ・border_csv: self.csvを収められる枠パターンのcsvインスタンス
+                          指定すると複数行に展開されたcsvデータが収まる枠パターンのcsvインスタンスも返す
+                          (multiple-linesが無い、もしくは未指定ならばNoneを返す)
+                            
+                            new_csv, _ = self._extend_multiple_lines()
+                            new_csv, new_p_csv = self._extend_multiple_lines(p_csv)
+        """
+        multiple_lines_idxs = self.get_string_idx_all(self._multiple_lines_delimiter)
+        if not multiple_lines_idxs:
+            return (None, None)
+        #print(f'multiple_lines_idxs: {multiple_lines_idxs}') ###
+
+        csv_data = copy.deepcopy(self.csv)
+        def field2multiple_lines(row_idx, col_idx): #一行表現のmultiple-linesを複数行表現(リスト)に変換
+            csv_data[row_idx][col_idx] = [_str2int_or_float(field) for field in csv_data[row_idx][col_idx].split(self._multiple_lines_delimiter)]
+        [field2multiple_lines(row_idx, col_idx) for row_idx, col_idx in multiple_lines_idxs]
+        #print(f'csv_data: {csv_data}') ###
+
+        increase_row = {}
+        multiple_lines_row_idxs = sorted(set(row_idx for row_idx, col_idx in multiple_lines_idxs))
+        def multiple_lines2zip_longest(row_idx): #multiple-linesのある行をmultiple-linesの行数に拡張
+            csv_data[row_idx] = [list(i) for i in #zip_longestでタプルになった要素をリストに戻す
+                    zip_longest(*[[field] if not isinstance(field, list) else field for field in csv_data[row_idx]],
+                    fillvalue='')]
+            increase_row[row_idx] = len(csv_data[row_idx])-1
+        [multiple_lines2zip_longest(row_idx) for row_idx in multiple_lines_row_idxs]
+        #print(f'csv_data: {csv_data}') ###
+        #print(f'increase_row: {increase_row}') ###
+        #print(f'multiple_lines_row_idxs: {multiple_lines_row_idxs}') ###
+
+        new_csv_data = []
+        [new_csv_data.extend(row_value) if row_idx in multiple_lines_row_idxs else new_csv_data.append(row_value)
+                for row_idx, row_value in enumerate(csv_data)]
+        #print(f'new_csv_data: {new_csv_data}') ###
+        new_csv = csv(new_csv_data)
+        new_csv._copy_property(self)
+
+        if border_csv is not None:
+            #border_csv.print() ###
+            border_increase_row = dict([(row_idx*2+1, increase) for row_idx, increase in increase_row.items()])
+            border_data = copy.deepcopy(border_csv.csv)
+            def row_increase(row_idx):
+                spaces = tuple(' ' for _ in range(len(border_data[row_idx])))
+                border = tuple(border_data[row_idx])
+                border_data[row_idx] = [list(i) for i in [border] + [spaces, border] * border_increase_row[row_idx]]
+                #print(f'border_data: {border_data[row_idx]}') ###
+            [row_increase(row_idx) for row_idx in border_increase_row.keys()]
+
+            new_border_data = []
+            [new_border_data.extend(row_value) if row_idx in border_increase_row.keys() else new_border_data.append(row_value)
+                    for row_idx, row_value in enumerate(border_data)]
+            #print(f'border_data: {border_data}') ###
+            #b=csv(border_data);b._display_delimiter='';b.print() ###
+            new_border_csv = csv(new_border_data)
+            new_border_csv._copy_property(border_csv)
+            #new_border_csv.print() ###
+            return (new_csv, new_border_csv)
+
+        return (new_csv, None)
+
+    @contextmanager
+    def _print_strings(self):
+        """
+        print関連のメソッドの共通処理
+        """
+        strings = []
+        yield strings
+
+        strings = ' '.join(strings)
         if self.print_file['file'] is not None:
             self._write_print_file(strings)
         else:
@@ -1139,7 +1272,7 @@ class csv(object):
         """
         with open(csv_file, mode, encoding=encoding) as f:
             if uniform:
-                f.write(_uniform_width(self.csv, field_delimiter=self._display_delimiter, grouping_opt=self.grouping_opt, precision=self.precision))
+                f.write(self._sprint())
             else:
                 f.write('\n'.join([','.join(row) for row in _field2striped_str(self.csv)])+'\n')
 
@@ -1236,9 +1369,28 @@ class csv(object):
         """
         return [idxs for idxs in self._get_field_idx(value, row_idx, col_idx)]
 
-    def _get_field_idx(self, value, row_idx=None, col_idx=None):
+    def get_string_idx(self, string, row_idx=None, col_idx=None):
+        """
+        csvデータの中にstringを含んだフィールドがあればそのインデックスを返す(最初に見つけた1つを返す)
+            row_idx, col_idxで検索範囲を指定できる
+            row_idx, col_idxはsliceも指定可能
+        """
+        for idxs in self._get_field_idx(string, partial_match=True, row_idx=row_idx, col_idx=col_idx):
+            return idxs
+
+    def get_string_idx_all(self, string, row_idx=None, col_idx=None):
+        """
+        csvデータの中にstringを含んだフィールドがあればそのインデックスを返す(見つけた全てを返す)
+            row_idx, col_idxで検索範囲を指定できる
+            row_idx, col_idxはsliceも指定可能
+        """
+        return [idxs for idxs in self._get_field_idx(string, partial_match=True, row_idx=row_idx, col_idx=col_idx)]
+
+    def _get_field_idx(self, value, partial_match=False, row_idx=None, col_idx=None):
         """
         csvデータの中にvalueがあればそのインデックスを返す(get_field_idxとget_field_idx_allの共通処理)
+            partial_match: Trueなら部分一致で判定(この場合はvalueは文字列であり、文字列のフィールドのみが対象となる)
+                           Falseならば完全一致
             row_idx, col_idxで検索範囲を指定できる
             row_idx, col_idxはsliceも指定可能
         """
@@ -1258,8 +1410,12 @@ class csv(object):
 
         for r_idx, row in rows:
             for c_idx, field in cols(row):
-                if field == value:
-                    yield (r_idx, c_idx)
+                if partial_match: #部分一致
+                    if isinstance(value, str) and isinstance(field, str) and value in field:
+                        yield (r_idx, c_idx)
+                else: #完全一致
+                    if value == field:
+                        yield (r_idx, c_idx)
 
     def get_field_value(self, row_idx, col_idx):
         """
@@ -1597,7 +1753,7 @@ class csv(object):
     #------------------------------
     # データ集計
     #------------------------------
-    def groupby(self, grouping_col_idxs, target_col_idxs=None, func=lambda fields: ' / '.join(map(str, fields)), row_start_idx=0, row_end_idx=None):
+    def groupby(self, grouping_col_idxs, target_col_idxs=None, func=lambda fields: r'\n'.join(map(str, fields)), row_start_idx=0, row_end_idx=None):
         """
         選択した列のフィールド値でグループ化し集計したcsvデータを返す
             grouping_col_idxs: グループ化対象の列
@@ -1623,26 +1779,24 @@ class csv(object):
         #print(f'grouping_col_idxs: {grouping_col_idxs}')
         #print(f'target_col_idxs: {target_col_idxs}')
 
-        group = defaultdict(list)
-        def add_group(key, value):
-            group[key].append(value)
-
+        group_dict = defaultdict(list)
+        add_group_dict = lambda key, value: group_dict[key].append(value)
         group_len = len(grouping_col_idxs)
         self.cal_columns(grouping_col_idxs+target_col_idxs,
-                         lambda *args: add_group(args[:group_len], args[group_len:]),
+                         lambda *args: add_group_dict(args[:group_len], args[group_len:]),
                          row_start_idx=row_start_idx, row_end_idx=row_end_idx)
-        #print(group)
+        #print(group_dict)
 
         def wrapper_func(args):
             try:
-                ret = func(args)
+                ret = _str2int_or_float(func(args))
             except:
                 ret = '' #func処理の結果がエラーならば集計結果は空にする
             return ret
 
         arranged_csv = self.arrange_columns(*(grouping_col_idxs+target_col_idxs))
         new_csv = csv([*arranged_csv.csv[0:row_start_idx],
-                       *[list(key)+[wrapper_func(args) for args in zip(*value)] for key, value in group.items()],
+                       *[list(key)+[wrapper_func(args) for args in zip(*value)] for key, value in group_dict.items()],
                        *([] if row_end_idx is None else arranged_csv.csv[row_end_idx:])])
 
         new_csv._copy_property(self)
@@ -1698,38 +1852,12 @@ class csv(object):
             return
         p_csv = csv([[char for char in row] for row in p.strip('\n').split('\n')]) #枠パターンを参照するcsvデータ
         p_csv._display_delimiter = '' #枠の表示が崩れないように表示用デリミタを空にする(デバッグ用)
-        #p_csv.print()
+        #p_csv.print()###
 
         #csvデータをコピー & データに穴があれば埋める
         columns = row2column(self.csv)
         data = row2column(columns)
-
-        #隣接する各フィールド値が同じ値か否かの情報生成
-        if self.grouping_border:
-            col_diff = [[field != next_field for field, next_field in zip(row[:-1], row[1:])] for row in data]
-            row_diff = [[field != next_field for field, next_field in zip(col[:-1], col[1:])] for col in columns]
-            row_diff = row2column(row_diff)
-            #print(f'col_diff: {repr(col_diff)}')
-            #print(f'row_diff: {repr(row_diff)}')
-            #if col_diff and col_diff[0]: col_diff_csv = csv(col_diff); print('col_diff:\n'); col_diff_csv.print()
-            #if row_diff and row_diff[0]: row_diff_csv = csv(row_diff); print('row_diff:\n'); row_diff_csv.print()
-
-        #alignとwidthを適用した文字列生成
-        #width設定
-        col_max_widths = _max_widths(columns, grouping_opt=self.grouping_opt, precision=self.precision)
-        #print(f'col_max_widths: {col_max_widths}')
-        if widths is not None and isinstance(widths, dict):
-            c_widths = defaultdict(lambda:0)
-            c_widths.update(widths)
-            col_max_widths = [c_widths[col_idx] if c_widths[col_idx] > col_max_width else col_max_width
-                              for col_idx, col_max_width in enumerate(col_max_widths)] #widthsを取り込む(大きい値を採用)
-            #print(f'col_max_widths: {col_max_widths}(カスタム化)')
-        col_max_widths = [width if width%2 == 0 else width+1 for width in col_max_widths] #文字幅2のフィールド値や枠にも対応できるようにwidthを偶数にする
-        #print(f'col_max_widths: {col_max_widths}')
-        widths = dict([(i, w) for i,w in enumerate(col_max_widths)])
-        s = _uniform_width(data, field_delimiter=',', header_aligns=header_aligns, aligns=aligns, widths=widths, grouping_opt=self.grouping_opt, precision=self.precision)
-        d_csv = csv([[field for field in row.split(',')] for row in s.strip('\n').split('\n')]) #csvデータ化(alignとwidth情報を消さないように各フィールドはstripしない)
-        #d_csv.print()
+        d_csv = csv(data)
 
         #枠パターンの行数を増減(d_csvの行が入るよう)
         if p_csv._row_len()//2 == d_csv._row_len(): #同じ大きさ
@@ -1740,18 +1868,18 @@ class csv(object):
             p_columns = row2column(p_csv.csv)
             row_increase = d_csv._row_len() - p_csv._row_len()//2
             p_center = {'row': p_csv._row_center(), 'col': p_csv._col_center()} #初期値(行を増加させる前の値を確保)
-            #print(f'row_increase: {row_increase}')
+            #print(f'row_increase: {row_increase}')###
             for col_idx in range(p_csv._col_len()):
                 L = p_columns[col_idx][p_center['row']-1: p_center['row']+1][::-1]
                 L = L*(row_increase//2 + row_increase%2)
                 R = p_columns[col_idx][p_center['row']: p_center['row']+2][::-1]
                 R = R*(row_increase//2)
-                #print(f'row: L:{L}, R:{R}')
+                #print(f'row: L:{L}, R:{R}')###
                 C = L + [p_columns[col_idx][p_center['row']]] + R
                 p_columns[col_idx] = p_columns[col_idx][:p_center['row']] + C + p_columns[col_idx][p_center['row']+1:]
             p_csv.csv = row2column(p_columns)
-        #p_csv.print()
-        #print(f'p_csv len 2: {p_csv._row_len()}, {p_csv._col_len()}')
+        #p_csv.print()###
+        #print(f'p_csv len 2: {p_csv._row_len()}, {p_csv._col_len()}')###
 
         #枠パターンの列数を増減(d_csvの列が入るよう)
         if p_csv._col_len()//2 == d_csv._col_len(): #同じ大きさ
@@ -1763,20 +1891,29 @@ class csv(object):
         else: #d_csvが枠パターンより大きい
             col_increase = d_csv._col_len() - p_csv._col_len()//2
             p_center = {'row': p_csv._row_center(), 'col': p_csv._col_center()} #初期値(列を増加させる前の値を確保)
-            #print(f'col_increase: {col_increase}')
+            #print(f'col_increase: {col_increase}')###
             for row_idx in range(p_csv._row_len()):
                 L = p_csv.csv[row_idx][p_center['col']-1: p_center['col']+1][::-1]
                 L = L*(col_increase//2 + col_increase%2)
                 R = p_csv.csv[row_idx][p_center['col']: p_center['col']+2][::-1]
                 R = R*(col_increase//2)
-                #print(f'col: L:{L}, R:{R}')
+                #print(f'col: L:{L}, R:{R}')###
                 C = L + [p_csv.csv[row_idx][p_center['col']]] + R
                 p_csv.csv[row_idx] = p_csv.csv[row_idx][:p_center['col']] + C + p_csv.csv[row_idx][p_center['col']+1:]
-        #p_csv.print()
-        #print(f'p_csv len 3: {p_csv._row_len()}, {p_csv._col_len()}')
+        #p_csv.print()###
+        #print(f'p_csv len 3: {p_csv._row_len()}, {p_csv._col_len()}')###
 
         #枠のグループ化(隣接するフィールド値が同じならば、その境界の枠をスペースにする)
-        if self.grouping_border:
+        if self.border_grouping:
+            #隣接する各フィールド値が同じ値か否かの情報生成
+            col_diff = [[field != next_field for field, next_field in zip(row[:-1], row[1:])] for row in d_csv.csv]
+            row_diff = [[field != next_field for field, next_field in zip(col[:-1], col[1:])] for col in columns]
+            row_diff = row2column(row_diff)
+            #print(f'col_diff: {repr(col_diff)}')###
+            #print(f'row_diff: {repr(row_diff)}')###
+            #if col_diff and col_diff[0]: col_diff_csv = csv(col_diff); print('col_diff:\n'); col_diff_csv.print()###
+            #if row_diff and row_diff[0]: row_diff_csv = csv(row_diff); print('row_diff:\n'); row_diff_csv.print()###
+
             for row_idx, row_data in enumerate(col_diff):
                 for idx, diff in enumerate(row_data):
                     if not diff:
@@ -1786,7 +1923,33 @@ class csv(object):
                 for idx, diff in enumerate(row_data):
                     if not diff:
                         p_csv.csv[row_idx*2+2][idx*2+1] = ' '
-            #p_csv.print()
+            #p_csv.print()###
+
+        #multiple-lines
+        if self.multiple_lines:
+            new_d_csv, new_p_csv = self._extend_multiple_lines(p_csv)
+            d_csv = d_csv if new_d_csv is None else new_d_csv
+            p_csv = p_csv if new_p_csv is None else new_p_csv
+            columns = row2column(d_csv.csv)
+            #d_csv.print()###
+            #p_csv.print()###
+
+        #alignとwidthを適用した文字列生成
+        #width設定
+        col_max_widths = _max_widths(columns, grouping_opt=self.grouping_opt, precision=self.precision)
+        #print(f'col_max_widths: {col_max_widths}')###
+        if widths is not None and isinstance(widths, dict):
+            c_widths = defaultdict(lambda:0)
+            c_widths.update(widths)
+            col_max_widths = [c_widths[col_idx] if c_widths[col_idx] > col_max_width else col_max_width
+                              for col_idx, col_max_width in enumerate(col_max_widths)] #widthsを取り込む(大きい値を採用)
+            #print(f'col_max_widths: {col_max_widths}(カスタム化)')###
+        col_max_widths = [width if width%2 == 0 else width+1 for width in col_max_widths] #文字幅2のフィールド値や枠にも対応できるようにwidthを偶数にする
+        #print(f'col_max_widths: {col_max_widths}')###
+        widths = dict([(i, w) for i,w in enumerate(col_max_widths)])
+        s = _uniform_width(d_csv.csv, field_delimiter=',', header_aligns=header_aligns, aligns=aligns, widths=widths, grouping_opt=self.grouping_opt, precision=self.precision)
+        d_csv = csv([[field for field in row.split(',')] for row in s.split('\n')]) #csvデータ化(alignとwidth情報を消さないように各フィールドはstripしない)
+        #d_csv.print()###
 
         #p_csvにd_csvの値を入れる
         for row_idx, row_data in enumerate(p_csv.csv):
@@ -1970,12 +2133,12 @@ def _uniform_width(csv_data, row_start_idx=0, row_end_idx=None, field_delimiter=
     csv_str = '\n'.join([field_delimiter.join(
                             [f'{col_data:{get_format(row_idx, col_idx, col_data)}}'
                             for col_idx, col_data in enumerate(row_data)])
-                            for row_idx, row_data in enumerate(csv_data)])+'\n'
+                            for row_idx, row_data in enumerate(csv_data)])
 
     if remain_toplines_num:
         csv_str = f'↑(There are {remain_toplines_num} rows)\n' + csv_str
     if remain_bottomlines_num:
-        csv_str += f'↓(There are {remain_bottomlines_num} rows)\n'
+        csv_str += f'\n↓(There are {remain_bottomlines_num} rows)'
 
     return csv_str
 
@@ -2001,6 +2164,7 @@ def _count_em(string):
 
 en_table = [
 '♠', '♥', '♦', '♣', '♤', '♡', '♢', '♧', #Suit
+'╭', '╮', '╰', '╯', #Rcorner
 ]
 
 def _is_em(char):
@@ -2264,6 +2428,13 @@ border_patterns = {
      
 | | |
 +-+-+
+""",
+    'Rcorner': """
+╭-+-╮
+| | |
++-+-+
+| | |
+╰-+-╯
 """,
     'Rst': """
  = = 
