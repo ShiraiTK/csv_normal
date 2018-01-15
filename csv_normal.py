@@ -947,7 +947,7 @@
 #       
 
 __all__ = ['csv', 'load', 'str2csv', 'list2csv', 'dict2csv', 'str2list', 'list2str', 'row2column', 'chk_border']
-__version__ = '3.0.4'
+__version__ = '3.0.5'
 __author__ = 'ShiraiTK'
 
 from collections import Counter, defaultdict
@@ -1753,13 +1753,16 @@ class csv(object):
     #------------------------------
     # データ集計
     #------------------------------
-    def groupby(self, grouping_col_idxs, target_col_idxs=None, func=lambda fields: r'\n'.join(map(str, fields)), row_start_idx=0, row_end_idx=None):
+    def groupby(self, grouping_col_idxs, target_col_idxs=None, func=None, row_start_idx=0, row_end_idx=None):
         """
         選択した列のフィールド値でグループ化し集計したcsvデータを返す
             grouping_col_idxs: グループ化対象の列
             target_col_idxs: 集計対象の列(Noneならgrouping_col_idxs以外の全ての列)
             func: 集計関数(target_col_idxsを集計する関数)
         """
+        if func is None:
+            func = lambda fields: self._multiple_lines_delimiter.join(map(str, fields))
+
         if not hasattr(grouping_col_idxs, '__iter__'): #指定インデックスが1つのみの場合
             grouping_col_idxs = (grouping_col_idxs,)
 
