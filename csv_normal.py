@@ -540,7 +540,9 @@
 #
 #----------------------------------------------------------------------------------------------------
 #       #文字列から簡単にcsvデータを作成できる
-#       #フィールドを複数行で表示するmultiple-lines表示が可能(multiple-linesのデリミタはr'\n' == '\\n')
+#       #フィールドを複数行で表示するmultiple-lines表示が可能
+#       #   multiple-linesのデリミタはr'\n' == '\\n'
+#       #   multiple_lines_delimiterプロパティで変更可能
 #       #
 #       >>> z = csv.str2csv("""
 #       Name, Born, Occupation
@@ -947,7 +949,7 @@
 #       
 
 __all__ = ['csv', 'load', 'str2csv', 'list2csv', 'dict2csv', 'str2list', 'list2str', 'row2column', 'chk_border']
-__version__ = '3.0.5'
+__version__ = '3.0.6'
 __author__ = 'ShiraiTK'
 
 from collections import Counter, defaultdict
@@ -1007,8 +1009,8 @@ class csv(object):
         self.print_idx2_border = csv._DEFAULT_PRINT_IDX2_BORDER #print_idx2メソッドで使用するborder_pattern
         self.border_grouping = csv._DEFAULT_BORDER_GROUPING #Trueにすると枠のグループ化機能が有効になる
 
-        self.multiple_lines = csv._DEFAULT_MULTIPLE_LINES #Trueにするとフィールド値を_multiple_lines_delimiterで枠内改行して表示する
-        self._multiple_lines_delimiter = csv._DEFAULT_MULTIPLE_LINES_DELIMITER #フィールド値をmultiple-linesに変換するデリミタ
+        self.multiple_lines = csv._DEFAULT_MULTIPLE_LINES #Trueにするとフィールド値をmultiple_lines_delimiterで枠内改行して表示する
+        self.multiple_lines_delimiter = csv._DEFAULT_MULTIPLE_LINES_DELIMITER #フィールド値をmultiple-linesに変換するデリミタ
 
         self.grouping_opt = csv._DEFAULT_GROUPING_OPT #Trueにすると数字の可読性があがる(千倍ごとの数字の区切り文字にアンダースコアを使う: 12345 -> 12_345)
         self.precision = csv._DEFAULT_PRECISION #floatの精度(小数点以下の桁数)
@@ -1026,7 +1028,7 @@ class csv(object):
         self.border_grouping = src.border_grouping
 
         self.multiple_lines = src.multiple_lines
-        self._multiple_lines_delimiter = src._multiple_lines_delimiter
+        self.multiple_lines_delimiter = src.multiple_lines_delimiter
 
         self.grouping_opt = src.grouping_opt
         self.precision = src.precision
@@ -1176,14 +1178,14 @@ class csv(object):
                             new_csv, _ = self._extend_multiple_lines()
                             new_csv, new_p_csv = self._extend_multiple_lines(p_csv)
         """
-        multiple_lines_idxs = self.get_string_idx_all(self._multiple_lines_delimiter)
+        multiple_lines_idxs = self.get_string_idx_all(self.multiple_lines_delimiter)
         if not multiple_lines_idxs:
             return (None, None)
         #print(f'multiple_lines_idxs: {multiple_lines_idxs}') ###
 
         csv_data = copy.deepcopy(self.csv)
         def field2multiple_lines(row_idx, col_idx): #一行表現のmultiple-linesを複数行表現(リスト)に変換
-            csv_data[row_idx][col_idx] = [_str2int_or_float(field) for field in csv_data[row_idx][col_idx].split(self._multiple_lines_delimiter)]
+            csv_data[row_idx][col_idx] = [_str2int_or_float(field) for field in csv_data[row_idx][col_idx].split(self.multiple_lines_delimiter)]
         [field2multiple_lines(row_idx, col_idx) for row_idx, col_idx in multiple_lines_idxs]
         #print(f'csv_data: {csv_data}') ###
 
@@ -1761,7 +1763,7 @@ class csv(object):
             func: 集計関数(target_col_idxsを集計する関数)
         """
         if func is None:
-            func = lambda fields: self._multiple_lines_delimiter.join(map(str, fields))
+            func = lambda fields: self.multiple_lines_delimiter.join(map(str, fields))
 
         if not hasattr(grouping_col_idxs, '__iter__'): #指定インデックスが1つのみの場合
             grouping_col_idxs = (grouping_col_idxs,)
