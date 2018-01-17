@@ -949,7 +949,7 @@
 #       
 
 __all__ = ['csv', 'load', 'str2csv', 'list2csv', 'dict2csv', 'str2list', 'list2str', 'row2column', 'chk_border']
-__version__ = '3.0.6'
+__version__ = '3.0.7'
 __author__ = 'ShiraiTK'
 
 from collections import Counter, defaultdict
@@ -1836,7 +1836,7 @@ class csv(object):
     #------------------------------
     # 枠
     #------------------------------
-    def wrap_border(self, border_pattern=0, header_aligns=None, aligns=None, widths=None):
+    def wrap_border(self, border_pattern=None, header_aligns=None, aligns=None, widths=None):
         """
         self.csvを枠で囲んだcsvインスタンスを返す
             ・border_pattern: 枠パターン(border_patternsの中から選択)
@@ -1852,7 +1852,11 @@ class csv(object):
                              (カスタムしたい列の情報だけを辞書に含めること)
         """
         #枠パターン取得
-        p = border_patterns.get(border_pattern)
+        if border_pattern is None:
+            p = border_patterns.get(self.print2_border)
+        else:
+            p = border_patterns.get(border_pattern)
+
         if p is None:
             return
         p_csv = csv([[char for char in row] for row in p.strip('\n').split('\n')]) #枠パターンを参照するcsvデータ
