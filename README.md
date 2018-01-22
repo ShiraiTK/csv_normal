@@ -8,7 +8,7 @@
     - 充実したデータ編集機能
     - 簡単なデータ集計機能
 
-![説明画像](https://user-images.githubusercontent.com/35160405/34946361-eea89e4c-fa49-11e7-9ccf-fffcefdd189d.jpg)
+![説明画像](https://raw.githubusercontent.com/ShiraiTK/for_image/master/csv_normal_readme.jpg)
 
 ###### 詳しくはソースコード内の使用例をみてね
 

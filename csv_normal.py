@@ -722,45 +722,45 @@
 #       >>> d= {'NAME': list('ABCDEFG'), 'VALUE_1': np.random.randn(7), 'VALUE_2': np.random.randn(7)}
 #       >>> h = csv.dict2csv(d)
 #       >>> h.print()
-#       NAME, VALUE_1  , VALUE_2  
-#       A   , -2.120046, -1.099123
-#       B   , -0.555660, -0.574652
-#       C   ,  0.986817, -0.773744
-#       D   , -1.520467,  0.470163
-#       E   ,  0.434692,  0.806196
-#       F   ,  0.247684, -0.158857
-#       G   , -1.411895,  1.024569
+#       NAME, VALUE_1, VALUE_2
+#       A   ,    0.40,    1.63
+#       B   ,   -1.37,    0.64
+#       C   ,   -0.06,    0.87
+#       D   ,    0.44,    0.73
+#       E   ,   -1.30,   -1.11
+#       F   ,   -1.73,    0.17
+#       G   ,   -0.82,   -0.94
 #       
 #       
 #       #floatの精度(小数点以下の桁数)を調整可能
 #       >>> h.precision = 10
 #       >>> h.print()
 #       NAME, VALUE_1      , VALUE_2      
-#       A   , -2.1200463280, -1.0991230897
-#       B   , -0.5556603344, -0.5746523053
-#       C   ,  0.9868170079, -0.7737436243
-#       D   , -1.5204673458,  0.4701625170
-#       E   ,  0.4346924925,  0.8061960297
-#       F   ,  0.2476837203, -0.1588567112
-#       G   , -1.4118951581,  1.0245691664
+#       A   ,  0.4003742639,  1.6272049722
+#       B   , -1.3694450047,  0.6399934786
+#       C   , -0.0633841457,  0.8659692839
+#       D   ,  0.4384958907,  0.7319732920
+#       E   , -1.2958969709, -1.1108404649
+#       F   , -1.7329270126,  0.1683664238
+#       G   , -0.8177787733, -0.9438108092
 #       
 #       >>> h.print2()
 #       +----+--------------+--------------+
 #       |NAME|VALUE_1       |VALUE_2       |
 #       +----+--------------+--------------+
-#       |A   | -2.1200463280| -1.0991230897|
+#       |A   |  0.4003742639|  1.6272049722|
 #       +----+--------------+--------------+
-#       |B   | -0.5556603344| -0.5746523053|
+#       |B   | -1.3694450047|  0.6399934786|
 #       +----+--------------+--------------+
-#       |C   |  0.9868170079| -0.7737436243|
+#       |C   | -0.0633841457|  0.8659692839|
 #       +----+--------------+--------------+
-#       |D   | -1.5204673458|  0.4701625170|
+#       |D   |  0.4384958907|  0.7319732920|
 #       +----+--------------+--------------+
-#       |E   |  0.4346924925|  0.8061960297|
+#       |E   | -1.2958969709| -1.1108404649|
 #       +----+--------------+--------------+
-#       |F   |  0.2476837203| -0.1588567112|
+#       |F   | -1.7329270126|  0.1683664238|
 #       +----+--------------+--------------+
-#       |G   | -1.4118951581|  1.0245691664|
+#       |G   | -0.8177787733| -0.9438108092|
 #       +----+--------------+--------------+
 #       
 #       
@@ -825,11 +825,12 @@
 #       
 #       
 #       #男女別の身長と体重の平均値
-#       >>> c.groupby(c['Sex'], (c['Height(cm)'], c['Weight(kg)']), func=lambda fields: sum(fields)//len(fields), row_start_idx=1).print2()
+#       >>> from statistics import mean, median, variance, stdev #平均: mean, 中央値: median, 分散: variance, 標準偏差: stdev
+#       >>> c.groupby(c['Sex'], (c['Height(cm)'], c['Weight(kg)']), func=mean, row_start_idx=1).print2()
 #       +------+----------+----------+
 #       |Sex   |Height(cm)|Weight(kg)|
 #       +------+----------+----------+
-#       |Male  |       180|        69|
+#       |Male  |    180.20|     69.40|
 #       +------+----------+----------+
 #       |Female|       165|        49|
 #       +------+----------+----------+
@@ -909,6 +910,104 @@
 #       
 #       
 #----------------------------------------------------------------------------------------------------
+#       #print関連のメソッドに前後処理を簡単に追加可能
+#       #   print_contextmanagerプロパティにcontextmanager用の関数を設定することで前後処理を簡単に追加できる
+#       #
+#       >>> n = csv.csv([[i for i in range(1,j)] for j in range(2,7)])
+#       >>> n.fill(0)
+#       >>> n.print2()
+#       +--+--+--+--+--+
+#       | 1| 0  0  0  0|
+#       +  +--+  +  +  +
+#       | 1| 2| 0  0  0|
+#       +  +  +--+  +  +
+#       | 1| 2| 3| 0  0|
+#       +  +  +  +--+  +
+#       | 1| 2| 3| 4| 0|
+#       +  +  +  +  +--+
+#       | 1| 2| 3| 4| 5|
+#       +--+--+--+--+--+
+#       >>>
+#       >>> def hoge(csv_self): #csvインスタンスを受け取る関数を定義する
+#       	print('START')
+#       	yield
+#       	print('END')
+#       
+#       
+#       >>> n.print_contextmanager = hoge
+#       >>> n.print2()
+#       START
+#       +--+--+--+--+--+
+#       | 1| 0  0  0  0|
+#       +  +--+  +  +  +
+#       | 1| 2| 0  0  0|
+#       +  +  +--+  +  +
+#       | 1| 2| 3| 0  0|
+#       +  +  +  +--+  +
+#       | 1| 2| 3| 4| 0|
+#       +  +  +  +  +--+
+#       | 1| 2| 3| 4| 5|
+#       +--+--+--+--+--+
+#       END
+#       >>>
+#
+#
+#       #print_contextmanagerプロパティに設定する関数はcsv.print_contextmanagerクラスに幾つか用意されている
+#       >>> n.print_contextmanager = csv.print_contextmanager.aggregate(sum) #各行列の合計値を追加表示する
+#       >>> n.print2()
+#       +--+--+--+--+--+--+
+#       | 1| 0  0  0  0| 1|
+#       +  +--+  +  +  +--+
+#       | 1| 2| 0  0  0| 3|
+#       +  +  +--+  +  +--+
+#       | 1| 2| 3| 0  0| 6|
+#       +  +  +  +--+  +--+
+#       | 1| 2| 3| 4| 0|10|
+#       +  +  +  +  +--+--+
+#       | 1| 2| 3| 4| 5|15|
+#       +--+--+--+--+  +--+
+#       | 5| 8| 9| 8| 5|35|
+#       +--+--+--+--+--+--+
+#       >>> n.csv
+#       [[1, 0, 0, 0, 0], [1, 2, 0, 0, 0], [1, 2, 3, 0, 0], [1, 2, 3, 4, 0], [1, 2, 3, 4, 5]] #データは元のまま
+#       >>>
+#
+#
+#       #各列の合計値を追加表示する(row_start_idx=1: 計算対象はインデックス1の行から)
+#       >>> n.print_contextmanager = csv.print_contextmanager.aggregate_col(sum, row_start_idx=1)
+#       >>> n.print2()
+#       +--+--+--+--+--+
+#       | 1| 0  0  0  0|
+#       +  +--+  +  +  +
+#       | 1| 2| 0  0  0|
+#       +  +  +--+  +  +
+#       | 1| 2| 3| 0  0|
+#       +  +  +  +--+  +
+#       | 1| 2| 3| 4| 0|
+#       +  +  +  +  +--+
+#       | 1| 2| 3| 4| 5|
+#       +--+--+--+--+  +
+#       | 4| 8| 9| 8| 5|
+#       +--+--+--+--+--+
+#       >>> n.csv
+#       [[1, 0, 0, 0, 0], [1, 2, 0, 0, 0], [1, 2, 3, 0, 0], [1, 2, 3, 4, 0], [1, 2, 3, 4, 5]] #データは元のまま
+#       >>>
+#       >>> n.print_contextmanager = None #Noneで無効化
+#       >>> n.print2()
+#       +--+--+--+--+--+
+#       | 1| 0  0  0  0|
+#       +  +--+  +  +  +
+#       | 1| 2| 0  0  0|
+#       +  +  +--+  +  +
+#       | 1| 2| 3| 0  0|
+#       +  +  +  +--+  +
+#       | 1| 2| 3| 4| 0|
+#       +  +  +  +  +--+
+#       | 1| 2| 3| 4| 5|
+#       +--+--+--+--+--+
+#       
+#       
+#----------------------------------------------------------------------------------------------------
 #       #csvデータの表示を他のアプリケーションで行う
 #       #   IDLEやターミナルなどは横スクロール機能が無いため、csvの列データが多すぎると表示が折り返されて正常に表示できない
 #       #   この問題を解決するために、print関連のメソッドの出力をファイルに保存する機能が用意されている
@@ -948,14 +1047,17 @@
 #
 #       
 
-__all__ = ['csv', 'load', 'str2csv', 'list2csv', 'dict2csv', 'str2list', 'list2str', 'row2column', 'chk_border']
-__version__ = '3.0.8'
+__all__ = ['csv', 'print_contextmanager', #class
+           'load', 'str2csv', 'list2csv', 'dict2csv', 'str2list', 'list2str', 'row2column', 'chk_border', #public function
+           ]
+__version__ = '3.0.9'
 __author__ = 'ShiraiTK'
 
 from collections import Counter, defaultdict
 from contextlib import contextmanager
 from itertools import product, zip_longest
 import copy
+import functools
 import io
 import os
 import re
@@ -969,6 +1071,63 @@ else:
     _OPEN_CMD = None
 
 #------------------------------
+# デコレータ
+#------------------------------
+def add_print_contextmanager(func):
+    @functools.wraps(func)
+    def wrapper(self, *args, **kwargs):
+        if self.print_contextmanager is None:
+            def print_contextmanager(arg): yield
+        else:
+            print_contextmanager = self.print_contextmanager
+
+        with contextmanager(print_contextmanager)(self):
+            func(self, *args, **kwargs)
+    return wrapper
+
+#------------------------------
+# print_contextmanagerクラス
+#------------------------------
+class print_contextmanager(object):
+    @staticmethod
+    def aggregate(func=None, row_start_idx=0, row_end_idx=None):
+        """
+        funcで集計した各行と各列の集計値をprin関連メソッド表示時に追加表示する
+        """
+        @functools.wraps(print_contextmanager.aggregate)
+        def contextmanager_func(csv_self):
+            csv_self.add_column(None, csv_self.map_rows(func, row_start_idx, row_end_idx))
+            csv_self.csv.append(csv_self.map_columns(func, row_start_idx, row_end_idx))
+            yield
+            del(csv_self.csv[-1])
+            csv_self.del_column(-1)
+        return contextmanager_func
+
+    @staticmethod
+    def aggregate_row(func=None, row_start_idx=0, row_end_idx=None):
+        """
+        funcで集計した各行の集計値をprin関連メソッド表示時に追加表示する
+        """
+        @functools.wraps(print_contextmanager.aggregate_row)
+        def contextmanager_func(csv_self):
+            csv_self.add_column(None, csv_self.map_rows(func, row_start_idx, row_end_idx))
+            yield
+            csv_self.del_column(-1)
+        return contextmanager_func
+
+    @staticmethod
+    def aggregate_col(func=None, row_start_idx=0, row_end_idx=None):
+        """
+        funcで集計した各列の集計値をprin関連メソッド表示時に追加表示する
+        """
+        @functools.wraps(print_contextmanager.aggregate_col)
+        def contextmanager_func(csv_self):
+            csv_self.csv.append(csv_self.map_columns(func, row_start_idx, row_end_idx))
+            yield
+            del(csv_self.csv[-1])
+        return contextmanager_func
+
+#------------------------------
 # csvクラス
 #------------------------------
 class csv(object):
@@ -980,10 +1139,11 @@ class csv(object):
     _DEFAULT_MULTIPLE_LINES_DELIMITER = r'\n'
 
     _DEFAULT_GROUPING_OPT = False
-    _DEFAULT_PRECISION = 6
+    _DEFAULT_PRECISION = 2
     _DEFAULT_DISPLAY_DELIMITER = ', '
     _DEFAULT_HEAD = 5
     _DEFAULT_PRINT_FILE = {'file':None, 'encoding':None}
+    _DEFAULT_PRINT_CONTEXTMANAGER = None
 
     def __init__(self, csv_data=None):
         """
@@ -1017,6 +1177,7 @@ class csv(object):
         self._display_delimiter = csv._DEFAULT_DISPLAY_DELIMITER #表示用デリミタ
         self._head = csv._DEFAULT_HEAD #print関数で表示するself.csvの先頭からの行数
         self.print_file = csv._DEFAULT_PRINT_FILE.copy() #設定したファイルにprint関連メソッドの出力が上書き保存される
+        self.print_contextmanager = csv._DEFAULT_PRINT_CONTEXTMANAGER #print関連メソッドの前後処理を行うcontextmanagerを登録できる(contextmanagerにはselfが渡される)
 
     def _copy_property(self, src):
         """
@@ -1035,6 +1196,7 @@ class csv(object):
         self._display_delimiter = src._display_delimiter
         self._head = src._head
         self.print_file = src.print_file.copy()
+        self.print_contextmanager = src.print_contextmanager
 
     def __call__(self, *args):
         """
@@ -1099,6 +1261,7 @@ class csv(object):
         return _uniform_width(csv_data, row_start_idx=row_start_idx, row_end_idx=row_end_idx, field_delimiter=self._display_delimiter,
                               header_aligns=header_aligns, aligns=aligns, widths=widths, grouping_opt=self.grouping_opt, precision=self.precision)
 
+    @add_print_contextmanager
     def print(self, head=None, tail=None):
         """
         self.csvを行列表示する
@@ -1106,6 +1269,7 @@ class csv(object):
         with self._print_strings() as strings:
             strings.append(self._sprint(head=head, tail=tail))
 
+    @add_print_contextmanager
     def print2(self, head=None, tail=None):
         """
         self.csvの行列を枠で囲んで見やすくして表示する
@@ -1115,6 +1279,7 @@ class csv(object):
             #multiple-linesの処理はwrap_borderメソッドで処理済み
             strings.append(wrap_csv._sprint(head=head, tail=tail, _chk_multiple_lines=False))
 
+    @add_print_contextmanager
     def print_idx(self, head=None, tail=None):
         """
         self.csvに行と列のインデックス情報を付け加えて行列表示する
@@ -1123,6 +1288,7 @@ class csv(object):
         with self._print_strings() as strings:
             strings.append(idx_csv._sprint(head=head, tail=tail, aligns={0:'>'})) #文字列のインデックスを右寄りに配置
 
+    @add_print_contextmanager
     def print_idx2(self, head=None, tail=None):
         """
         self.csvに行と列のインデックス情報を付け加え、さらに枠で囲んで見やすくした行列を表示する
@@ -1133,6 +1299,7 @@ class csv(object):
             #multiple-linesの処理はwrap_borderメソッドで処理済み
             strings.append(wrap_csv._sprint(head=head, tail=tail, _chk_multiple_lines=False))
 
+    @add_print_contextmanager
     def print_chg_format(self, head=None, tail=None, header_aligns=None, aligns=None, widths=None):
         """
         列のalignやwidthをカスタマイズして表示する
@@ -1141,6 +1308,7 @@ class csv(object):
             strings.append(self._sprint(head=head, tail=tail,
                                         header_aligns=header_aligns, aligns=aligns, widths=widths))
 
+    @add_print_contextmanager
     def print_range(self, row_start_idx=0, row_end_idx=None):
         """
         self.csvを行列表示する
@@ -1698,25 +1866,41 @@ class csv(object):
         """
         行範囲[row_start_idx:row_end_idx]をmapしたcsvインスタンスを返す
         """
+        wrapper_func = _wrapper_func(func) #func処理でエラーなら''を返すラッパー関数
         csv_data = [*self.csv[0:row_start_idx],
-                    *map(func, self.csv[row_start_idx:row_end_idx]),
+                    *map(wrapper_func, self.csv[row_start_idx:row_end_idx]),
                     *([] if row_end_idx is None else self.csv[row_end_idx:])
                     ]
         new_csv = csv(csv_data)
         new_csv._copy_property(self)
         return new_csv
 
+    def map_rows(self, func=None, row_start_idx=0, row_end_idx=None):
+        """
+        self.csvの各行をmapした配列を返す
+        """
+        wrapper_func = _wrapper_func(func)
+        return list(map(wrapper_func, self.csv[row_start_idx:row_end_idx]))
+
+    def map_columns(self, func=None, row_start_idx=0, row_end_idx=None):
+        """
+        self.csvの各列をmapした配列を返す
+        """
+        wrapper_func = _wrapper_func(func)
+        return list(map(wrapper_func, row2column(self.csv[row_start_idx:row_end_idx])))
+
     def cal_columns(self, col_idxs, func=None, row_start_idx=0, row_end_idx=None):
         """
         各列間のfunc処理の結果を返す
             各列の同じ行の値がfuncに入力され、その処理結果を収めた配列を返す
         """
+        wrapper_func = _wrapper_func(func) #func処理でエラーなら''を返すラッパー関数
         if not hasattr(col_idxs, '__iter__'): #指定インデックスが1つのみの場合
             col_idxs = (col_idxs,)
 
         columns = [self.get_column(col_idx)[row_start_idx:row_end_idx] for col_idx in col_idxs]
         args = row2column(columns)
-        return [func(*arg) for arg in args]
+        return [wrapper_func(*arg) for arg in args]
 
     def cal_rows(self, row_idxs, func=None, col_start_idx=0, col_end_idx=None):
         """
@@ -1792,16 +1976,10 @@ class csv(object):
                          row_start_idx=row_start_idx, row_end_idx=row_end_idx)
         #print(group_dict)
 
-        def wrapper_func(args):
-            try:
-                ret = _str2int_or_float(func(args))
-            except:
-                ret = '' #func処理の結果がエラーならば集計結果は空にする
-            return ret
-
+        wrapper_func = _wrapper_func(func) #func処理でエラーなら''を返すラッパー関数
         arranged_csv = self.arrange_columns(*(grouping_col_idxs+target_col_idxs))
         new_csv = csv([*arranged_csv.csv[0:row_start_idx],
-                       *[list(key)+[wrapper_func(args) for args in zip(*value)] for key, value in group_dict.items()],
+                       *[list(key)+[_str2int_or_float(wrapper_func(args)) for args in zip(*value)] for key, value in group_dict.items()],
                        *([] if row_end_idx is None else arranged_csv.csv[row_end_idx:])])
 
         new_csv._copy_property(self)
@@ -1867,6 +2045,7 @@ class csv(object):
         columns = row2column(self.csv)
         data = row2column(columns)
         d_csv = csv(data)
+        d_csv._copy_property(self)
 
         #枠パターンの行数を増減(d_csvの行が入るよう)
         if p_csv._row_len()//2 == d_csv._row_len(): #同じ大きさ
@@ -1936,7 +2115,7 @@ class csv(object):
 
         #multiple-lines
         if self.multiple_lines:
-            new_d_csv, new_p_csv = self._extend_multiple_lines(p_csv)
+            new_d_csv, new_p_csv = d_csv._extend_multiple_lines(p_csv)
             d_csv = d_csv if new_d_csv is None else new_d_csv
             p_csv = p_csv if new_p_csv is None else new_p_csv
             columns = row2column(d_csv.csv)
@@ -2038,6 +2217,18 @@ def chk_border():
 #------------------------------
 # 非公開関数
 #------------------------------
+def _wrapper_func(func):
+    """
+    func関数のエラーを吸収するラッパー関数を返す
+    """
+    def wrapper_func(*args):
+        try:
+            ret = func(*args)
+        except:
+            ret = '' #func処理の結果がエラーならばfunc結果は空にする
+        return ret
+    return wrapper_func
+
 def _file_obj2csv(fileObj):
     """
     ファイルオブジェクトからcsvデータを読み出す
@@ -2233,13 +2424,13 @@ def _str2striped_str(string):
     return string
 
 def _str2int(string):
-    if isinstance(string, str):
+    if isinstance(string, str) and string:
         string = _chg_int(string)
 
     return string
 
 def _str2float(string):
-    if isinstance(string, str):
+    if isinstance(string, str) and string:
         string = _chg_float(string)
 
     return string
