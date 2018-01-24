@@ -39,6 +39,12 @@
 #       Yamcha , weak       ,         1480, Age-733-year, Male  , Earthling,        183,         68
 #       
 #
+#       #csvデータでヘッダー＆フッターを含まないデータ範囲をsliceで指定する
+#       #sample.csvのデータはインデックス0の行がヘッダーなのでslice(1, None)と設定
+#       #
+#       >>> c.data_row_range = slice(1, None) #データ範囲を指定(インデックス0の行はヘッダー)
+#
+#
 #       #printメソッドはcsvデータの表示範囲を選択できる
 #       >>> c.print(3)
 #       Name  , Strength   , Buttle Power, Birthdate   , Sex , Race  , Height(cm), Weight(kg)
@@ -140,14 +146,14 @@
 #       
 #       
 #       #枠は簡単にカスタマイズ可能
-#       >>> csv.border_patterns['Custom_1']="""
+#       >>> csv.border_patterns['Custom1']="""
 #       o-o-o
 #       | | |
 #       o-o-o
 #       | | |
 #       o-o-o
 #       """
-#       >>> c.print2_border = 'Custom_1'
+#       >>> c.print2_border = 'Custom1'
 #       >>> c.print2()
 #       o--------o------------o------------o------------o------o----------o----------o----------o
 #       |Name    |Strength    |Buttle Power|Birthdate   |Sex   |Race      |Height(cm)|Weight(kg)|
@@ -168,6 +174,7 @@
 #       
 #       #reset_propertyメソッドで各プロパティの設定をリセットできる
 #       >>> c.reset_property()
+#       >>> c.data_row_range = slice(1, None) #データ範囲を指定(インデックス0の行はヘッダー)
 #       >>> c.print2()
 #       +--------+------------+------------+------------+------+----------+----------+----------+
 #       |Name    |Strength    |Buttle Power|Birthdate   |Sex   |Race      |Height(cm)|Weight(kg)|
@@ -348,11 +355,10 @@
 #       #   cal_columnsメソッドの引数:
 #       #       計算に必要なデータ(身長、体重)がある列の指定(4,5)、
 #       #       BMIを計算する関数(lambda h,w: int(w/(h/100)/(h/100)))、
-#       #       適用する行範囲(インデックス1～8の範囲内の行、つまりインデックス1から7の行)
 #       #
-#       >>> bmi = c.cal_columns((4,5), lambda h,w: int(w/(h/100)/(h/100)), 1, 8)
+#       >>> bmi = c.cal_columns((4,5), lambda h,w: int(w/(h/100)/(h/100)))
 #       >>> bmi
-#       [20, 20, 22, 17, 19, 20, 20]
+#       [20, 20, 22, 17, 19, 20, 20, '', '']
 #       >>> c.add_column(None, ['BMI']+bmi)
 #       >>> print(c)
 #       0, Name   , Sex   , Birthdate   , Height(cm), Weight(kg), BMI
@@ -364,7 +370,14 @@
 #       
 #
 #       #インデックス1～8の範囲内の行をBMI係数でsort
-#       >>> c.sort(lambda row: row[c['BMI']], True, 1, 8) #c['BMI'] == 6
+#       #   c.sort(lambda row: row[c['BMI']], True)だと[20, 20, 22, 17, 19, 20, 20, '', '']を
+#       #   sortすることになり、数字と文字の異なるタイプのsortはできないのでエラーになる
+#       #
+#       #   エラーを回避するために２つの方法がある
+#       #       1. c.data_row_range=slice(1,8)として全体のデータ範囲を変更する
+#       #       2. sortメソッドでsortする際のデータ範囲を指定(row_start_idx=1, row_end_idx=8)する
+#       #
+#       >>> c.sort(lambda row: row[c['BMI']], reverse=True, row_start_idx=1, row_end_idx=8) #c['BMI'] == 6
 #       >>> c.print()
 #       0, Name   , Sex   , Birthdate   , Height(cm), Weight(kg), BMI
 #       3, Piccolo, Male  , Age-753-year,        226,        116,  22
@@ -405,8 +418,8 @@
 #       ↓(There are 5 rows)
 #       
 #
-#       #インデックス1～全部の範囲内の行をフィルタリングし男だけを抽出
-#       >>> man = chg_year.filter(lambda row: row[c['Sex']]=='M', 1) #c['Sex'] == 2
+#       #男だけを抽出
+#       >>> man = chg_year.filter(lambda row: row[c['Sex']]=='M') #c['Sex'] == 2
 #       >>> man.print()
 #       0, Name   , Sex, Birthdate, Height(cm), Weight(kg), BMI
 #       3, Piccolo, M  , Age 753  ,        226,        116,  22
@@ -551,6 +564,7 @@
 #       Michael\\nEdward\\nPalin, 1943, Actor\\nwriter\\ntelevision\\npresenter\\ncomedian
 #       """)
 #       >>> 
+#       >>> z.data_row_range = slice(1, None) #データ範囲を指定(インデックス0の行はヘッダー)
 #       >>> z.trim() #空の行、空の列を削除
 #       >>> z.print2()
 #       +--------+----+------------+
@@ -785,10 +799,12 @@
 #       +--------+------------+------------+------------+------+----------+----------+----------+
 #       
 #       
+#       #データ範囲を指定(インデックス0の行はヘッダー)
+#       >>> c.data_row_range = slice(1, None)
+#       
+#       
 #       #性別でグループ化して各グループの合計値を集計(sum関数で集計できないフィールド値は空になる)
-#       #   row_start_idx=1としてヘッダーを集計対象から外している
-#       #
-#       >>> c.groupby(c['Sex'], func=sum, row_start_idx=1).print2()
+#       >>> c.groupby(c['Sex'], func=sum).print2()
 #       +------+----+--------+------------+----------+----+----------+----------+
 #       |Sex   |Name|Strength|Buttle Power|Birthdate |Race|Height(cm)|Weight(kg)|
 #       +------+----+--------+------------+----------+----+----------+----------+
@@ -799,7 +815,7 @@
 #       
 #       
 #       #集計対象を身長だけに限定
-#       >>> c.groupby(c['Sex'], c['Height(cm)'], func=sum, row_start_idx=1).print2()
+#       >>> c.groupby(c['Sex'], c['Height(cm)'], func=sum).print2()
 #       +------+----------+
 #       |Sex   |Height(cm)|
 #       +------+----------+
@@ -810,7 +826,7 @@
 #       
 #       
 #       #性別と種族でグループ化し、集計対象は身長だけに限定
-#       >>> c.groupby((c['Sex'], c['Race']), c['Height(cm)'], func=sum, row_start_idx=1).print2()
+#       >>> c.groupby((c['Sex'], c['Race']), c['Height(cm)'], func=sum).print2()
 #       +------+----------+----------+
 #       |Sex   |Race      |Height(cm)|
 #       +------+----------+----------+
@@ -826,7 +842,7 @@
 #       
 #       #男女別の身長と体重の平均値
 #       >>> from statistics import mean, median, variance, stdev #平均: mean, 中央値: median, 分散: variance, 標準偏差: stdev
-#       >>> c.groupby(c['Sex'], (c['Height(cm)'], c['Weight(kg)']), func=mean, row_start_idx=1).print2()
+#       >>> c.groupby(c['Sex'], (c['Height(cm)'], c['Weight(kg)']), func=mean).print2()
 #       +------+----------+----------+
 #       |Sex   |Height(cm)|Weight(kg)|
 #       +------+----------+----------+
@@ -837,7 +853,7 @@
 #       
 #       
 #       #同じ誕生日の人はいるのかな？
-#       >>> c.groupby(c['Birthdate'], c['Name'], func=len, row_start_idx=1).print2()
+#       >>> c.groupby(c['Birthdate'], c['Name'], func=len).print2()
 #       +------------+----+
 #       |Birthdate   |Name|
 #       +------------+----+
@@ -857,7 +873,7 @@
 #       #   func引数のデフォルト値はlambda fields: r'\n'.join(map(str, fields))となっているので
 #       #   グループ化したフィールド値を並べるだけならば省略可能
 #       #
-#       >>> c.groupby(c['Birthdate'], c['Name'], row_start_idx=1).print2()
+#       >>> c.groupby(c['Birthdate'], c['Name']).print2()
 #       +------------+--------+
 #       |Birthdate   |Name    |
 #       +------------+--------+
@@ -873,7 +889,7 @@
 #       |Age-736-year|Krillin |
 #       +------------+--------+
 #       >>> 
-#       >>> c.groupby(c['Sex'], row_start_idx=1).print2()
+#       >>> c.groupby(c['Sex']).print2()
 #       +------+--------+------------+------------+------------+----------+----------+----------+
 #       |Sex   |Name    |Strength    |Buttle Power|Birthdate   |Race      |Height(cm)|Weight(kg)|
 #       +------+--------+------------+------------+------------+----------+----------+----------+
@@ -888,7 +904,7 @@
 #       
 #       
 #       #性別と種族でクロス集計
-#       >>> c.cross_count(c['Race'], c['Sex'], row_start_idx=1).print2()
+#       >>> c.cross_count(c['Race'], c['Sex']).print2()
 #       +------+----------+--------+--------+
 #       |      |Earthling |Namekian|Saiyan  |
 #       +------+----------+--------+--------+
@@ -899,7 +915,7 @@
 #       
 #       
 #       #field_fmt引数でフィールドの表示形式を設定できる
-#       >>> c.cross_count(c['Race'], c['Sex'], row_start_idx=1, field_fmt='{count}').print2()
+#       >>> c.cross_count(c['Race'], c['Sex'], field_fmt='{count}').print2()
 #       +------+----------+--------+------+
 #       |      |Earthling |Namekian|Saiyan|
 #       +------+----------+--------+------+
@@ -973,8 +989,8 @@
 #       >>>
 #
 #
-#       #各列の合計値を追加表示する(row_start_idx=1: 計算対象はインデックス1の行から)
-#       >>> n.print_contextmanager = csv.print_contextmanager.aggregate_col(sum, row_start_idx=1)
+#       #各列の合計値を追加表示する
+#       >>> n.print_contextmanager = csv.print_contextmanager.aggregate_col(sum)
 #       >>> n.print2()
 #       +--+--+--+--+--+
 #       | 1| 0  0  0  0|
@@ -987,10 +1003,26 @@
 #       +  +  +  +  +--+
 #       | 1| 2| 3| 4| 5|
 #       +--+--+--+--+  +
-#       | 4| 8| 9| 8| 5|
+#       | 5| 8| 9| 8| 5|
 #       +--+--+--+--+--+
 #       >>> n.csv
 #       [[1, 0, 0, 0, 0], [1, 2, 0, 0, 0], [1, 2, 3, 0, 0], [1, 2, 3, 4, 0], [1, 2, 3, 4, 5]] #データは元のまま
+#       >>>
+#       >>> n.data_row_range = slice(1, -1) #データ範囲を変更(最初と最後の行は無視される)
+#       >>> n.print2()
+#       +--+--+--+--+--+
+#       | 1| 0  0  0  0|
+#       +  +--+  +  +  +
+#       | 1| 2| 0  0  0|
+#       +  +  +--+  +  +
+#       | 1| 2| 3| 0  0|
+#       +  +  +  +--+  +
+#       | 1| 2| 3| 4| 0|
+#       +  +  +  +  +--+
+#       | 1| 2| 3| 4| 5|
+#       +--+--+--+  +--+
+#       | 3| 6  6| 4| 0|
+#       +--+--+--+--+--+
 #       >>>
 #       >>> n.print_contextmanager = None #Noneで無効化
 #       >>> n.print2()
@@ -1050,7 +1082,7 @@
 __all__ = ['csv', 'print_contextmanager', #class
            'load', 'str2csv', 'list2csv', 'dict2csv', 'str2list', 'list2str', 'row2column', 'chk_border', #public function
            ]
-__version__ = '3.0.9'
+__version__ = '3.1.0'
 __author__ = 'ShiraiTK'
 
 from collections import Counter, defaultdict
@@ -1058,6 +1090,7 @@ from contextlib import contextmanager
 from itertools import product, zip_longest
 import copy
 import functools
+import inspect
 import io
 import os
 import re
@@ -1073,7 +1106,43 @@ else:
 #------------------------------
 # デコレータ
 #------------------------------
+def set_row_range(func):
+    """
+    メソッドの引数row_start_idxとrow_end_idxの値をself.data_row_rangeで設定する
+        func呼び出し時にrow_start_idxやrow_end_idxが指定されていれば、その指定を優先する
+    """
+    @functools.wraps(func)
+    def wrapper(self, *args, **kwargs):
+        #funcの引数を全てall_kwargsにまとめる
+        spec = inspect.getfullargspec(func)
+        spec_args_len = len(spec.args)
+        if spec.args[0] == 'self':
+            spec.args.pop(0)
+        all_kwargs = dict(zip(spec.args, args[:spec_args_len]))
+        if spec.varargs is not None:
+            all_kwargs[spec.varargs] = args[spec_args_len]
+        if spec.kwonlydefaults is not None:
+            all_kwargs.update(spec.kwonlydefaults)
+        all_kwargs.update(kwargs)
+
+        #row_start_idx, row_end_idxを設定
+        #   func呼び出し時にrow_start_idxやrow_end_idxが指定されていれば、その指定を優先する
+        key = 'row_start_idx'
+        if key not in all_kwargs:
+            all_kwargs[key] = self.data_row_range.start
+
+        key = 'row_end_idx'
+        if key not in all_kwargs:
+            all_kwargs[key] = self.data_row_range.stop
+        
+        #print(f'all_kwargs: {all_kwargs}') ###
+        return func(self, **all_kwargs)
+    return wrapper
+
 def add_print_contextmanager(func):
+    """
+    print関連のメソッドに前後処理(self.print_contextmanager)を追加する
+    """
     @functools.wraps(func)
     def wrapper(self, *args, **kwargs):
         if self.print_contextmanager is None:
@@ -1090,39 +1159,39 @@ def add_print_contextmanager(func):
 #------------------------------
 class print_contextmanager(object):
     @staticmethod
-    def aggregate(func=None, row_start_idx=0, row_end_idx=None):
+    def aggregate(func=None):
         """
         funcで集計した各行と各列の集計値をprin関連メソッド表示時に追加表示する
         """
         @functools.wraps(print_contextmanager.aggregate)
         def contextmanager_func(csv_self):
-            csv_self.add_column(None, csv_self.map_rows(func, row_start_idx, row_end_idx))
-            csv_self.csv.append(csv_self.map_columns(func, row_start_idx, row_end_idx))
+            csv_self.add_column(None, csv_self.map_rows(func))
+            csv_self.csv.append(csv_self.map_columns(func))
             yield
             del(csv_self.csv[-1])
             csv_self.del_column(-1)
         return contextmanager_func
 
     @staticmethod
-    def aggregate_row(func=None, row_start_idx=0, row_end_idx=None):
+    def aggregate_row(func=None):
         """
         funcで集計した各行の集計値をprin関連メソッド表示時に追加表示する
         """
         @functools.wraps(print_contextmanager.aggregate_row)
         def contextmanager_func(csv_self):
-            csv_self.add_column(None, csv_self.map_rows(func, row_start_idx, row_end_idx))
+            csv_self.add_column(None, csv_self.map_rows(func))
             yield
             csv_self.del_column(-1)
         return contextmanager_func
 
     @staticmethod
-    def aggregate_col(func=None, row_start_idx=0, row_end_idx=None):
+    def aggregate_col(func=None):
         """
         funcで集計した各列の集計値をprin関連メソッド表示時に追加表示する
         """
         @functools.wraps(print_contextmanager.aggregate_col)
         def contextmanager_func(csv_self):
-            csv_self.csv.append(csv_self.map_columns(func, row_start_idx, row_end_idx))
+            csv_self.csv.append(csv_self.map_columns(func))
             yield
             del(csv_self.csv[-1])
         return contextmanager_func
@@ -1131,6 +1200,8 @@ class print_contextmanager(object):
 # csvクラス
 #------------------------------
 class csv(object):
+    _DEFAULT_HEADER_IDX = 0
+    _DEFAULT_DATA_ROW_RANGE = slice(0, None)
     _DEFAULT_PRINT2_BORDER = 'Standard'
     _DEFAULT_PRINT_IDX2_BORDER = 'Index'
     _DEFAULT_BORDER_GROUPING = True
@@ -1165,6 +1236,8 @@ class csv(object):
         """
         プロパティをデフォルト値に戻す
         """
+        self.header_idx = csv._DEFAULT_HEADER_IDX #ヘッダーのインデックス
+        self.data_row_range = csv._DEFAULT_DATA_ROW_RANGE #csvデータでヘッダー＆フッターを含まないデータ範囲(sliceで指定)
         self.print2_border = csv._DEFAULT_PRINT2_BORDER #print2メソッドで使用するborder_pattern
         self.print_idx2_border = csv._DEFAULT_PRINT_IDX2_BORDER #print_idx2メソッドで使用するborder_pattern
         self.border_grouping = csv._DEFAULT_BORDER_GROUPING #Trueにすると枠のグループ化機能が有効になる
@@ -1184,6 +1257,8 @@ class csv(object):
         src.csv以外のプロパティをsrcからコピーする
             filterメソッドやmapメソッドなど、処理結果を新しいcsvインスタンスとして返すメソッドで使用する
         """
+        self.header_idx = src.header_idx
+        self.data_row_range = src.data_row_range
         self.print2_border = src.print2_border
         self.print_idx2_border = src.print_idx2_border
         self.border_grouping = src.border_grouping
@@ -1491,7 +1566,7 @@ class csv(object):
         """
         csvデータのヘッダーを返す
         """
-        return self.csv[0]
+        return self.csv[self.header_idx]
 
     def get_header_idx(self, value, start=None, stop=None):
         """
@@ -1770,12 +1845,12 @@ class csv(object):
         new_column = [_str2int_or_float(field) for field in new_column] #intに変換できる文字列はintに、floatに変換できる文字列はfloatに変換
 
         if col_idx <= len(columns) - 1: #col_idxがself.csvの範囲内の場合
-            #print(f'col_idx: {col_idx}, len(columns)-1: {len(columns)-1}')
+            #print(f'col_idx: {col_idx}, len(columns)-1: {len(columns)-1}') ###
             columns.insert(col_idx, new_column)
         else:
             blank_col_num = col_idx - len(columns)
             blank_col = ('',) * max([len(col) for col in columns])
-            #print(f'blank_col_num: {blank_col_num}'); print(f'blank_col: {blank_col}')
+            #print(f'blank_col_num: {blank_col_num}'); print(f'blank_col: {blank_col}') ###
 
             columns += [blank_col,]*blank_col_num #ブランク追加
             columns.append(new_column)
@@ -1813,6 +1888,7 @@ class csv(object):
     #------------------------------
     # 高度な操作
     #------------------------------
+    @set_row_range
     def sort(self, key=None, reverse=False, row_start_idx=0, row_end_idx=None):
         """
         行範囲[row_start_idx:row_end_idx]をsortする
@@ -1822,6 +1898,7 @@ class csv(object):
                     *([] if row_end_idx is None else self.csv[row_end_idx:])
                     ]
 
+    @set_row_range
     def fill(self, fillvalue='', row_start_idx=0, row_end_idx=None):
         """
         行範囲[row_start_idx:row_end_idx]内の行列で欠けている箇所をfillvalueで埋める
@@ -1850,6 +1927,7 @@ class csv(object):
                 new_csv = self.arrange_columns(*not_empty_col_idx)
                 self.csv = new_csv.csv
 
+    @set_row_range
     def filter(self, func=None, row_start_idx=0, row_end_idx=None):
         """
         行範囲[row_start_idx:row_end_idx]をfilterしたcsvインスタンスを返す
@@ -1862,11 +1940,12 @@ class csv(object):
         new_csv._copy_property(self)
         return new_csv
 
+    @set_row_range
     def map(self, func=None, row_start_idx=0, row_end_idx=None):
         """
         行範囲[row_start_idx:row_end_idx]をmapしたcsvインスタンスを返す
         """
-        wrapper_func = _wrapper_func(func) #func処理でエラーなら''を返すラッパー関数
+        wrapper_func = _non_error(func) #func処理でエラーなら''を返すラッパー関数
         csv_data = [*self.csv[0:row_start_idx],
                     *map(wrapper_func, self.csv[row_start_idx:row_end_idx]),
                     *([] if row_end_idx is None else self.csv[row_end_idx:])
@@ -1875,40 +1954,35 @@ class csv(object):
         new_csv._copy_property(self)
         return new_csv
 
+    @set_row_range
     def map_rows(self, func=None, row_start_idx=0, row_end_idx=None):
         """
         self.csvの各行をmapした配列を返す
         """
-        wrapper_func = _wrapper_func(func)
+        wrapper_func = _non_error(func)
         return list(map(wrapper_func, self.csv[row_start_idx:row_end_idx]))
 
+    @set_row_range
     def map_columns(self, func=None, row_start_idx=0, row_end_idx=None):
         """
         self.csvの各列をmapした配列を返す
         """
-        wrapper_func = _wrapper_func(func)
+        wrapper_func = _non_error(func)
         return list(map(wrapper_func, row2column(self.csv[row_start_idx:row_end_idx])))
 
+    @set_row_range
     def cal_columns(self, col_idxs, func=None, row_start_idx=0, row_end_idx=None):
         """
         各列間のfunc処理の結果を返す
             各列の同じ行の値がfuncに入力され、その処理結果を収めた配列を返す
         """
-        wrapper_func = _wrapper_func(func) #func処理でエラーなら''を返すラッパー関数
+        wrapper_func = _non_error(func) #func処理でエラーなら''を返すラッパー関数
         if not hasattr(col_idxs, '__iter__'): #指定インデックスが1つのみの場合
             col_idxs = (col_idxs,)
 
         columns = [self.get_column(col_idx)[row_start_idx:row_end_idx] for col_idx in col_idxs]
         args = row2column(columns)
         return [wrapper_func(*arg) for arg in args]
-
-    def cal_rows(self, row_idxs, func=None, col_start_idx=0, col_end_idx=None):
-        """
-        各行間のfunc処理の結果を返す
-            各行の同じ列の値がfuncに入力され、その処理結果を収めた配列を返す
-        """
-        tmp_csv = csv(row2column(self.csv))
-        return tmp_csv.cal_columns(row_idxs, func=func, row_start_idx=col_start_idx, row_end_idx=col_end_idx)
 
     def row2column(self):
         """
@@ -1939,6 +2013,7 @@ class csv(object):
     #------------------------------
     # データ集計
     #------------------------------
+    @set_row_range
     def groupby(self, grouping_col_idxs, target_col_idxs=None, func=None, row_start_idx=0, row_end_idx=None):
         """
         選択した列のフィールド値でグループ化し集計したcsvデータを返す
@@ -1965,8 +2040,8 @@ class csv(object):
         #tupleに統一
         grouping_col_idxs = tuple(grouping_col_idxs)
         target_col_idxs = tuple(target_col_idxs)
-        #print(f'grouping_col_idxs: {grouping_col_idxs}')
-        #print(f'target_col_idxs: {target_col_idxs}')
+        #print(f'grouping_col_idxs: {grouping_col_idxs}') ###
+        #print(f'target_col_idxs: {target_col_idxs}') ###
 
         group_dict = defaultdict(list)
         add_group_dict = lambda key, value: group_dict[key].append(value)
@@ -1974,9 +2049,9 @@ class csv(object):
         self.cal_columns(grouping_col_idxs+target_col_idxs,
                          lambda *args: add_group_dict(args[:group_len], args[group_len:]),
                          row_start_idx=row_start_idx, row_end_idx=row_end_idx)
-        #print(group_dict)
+        #print(group_dict) ###
 
-        wrapper_func = _wrapper_func(func) #func処理でエラーなら''を返すラッパー関数
+        wrapper_func = _non_error(func) #func処理でエラーなら''を返すラッパー関数
         arranged_csv = self.arrange_columns(*(grouping_col_idxs+target_col_idxs))
         new_csv = csv([*arranged_csv.csv[0:row_start_idx],
                        *[list(key)+[_str2int_or_float(wrapper_func(args)) for args in zip(*value)] for key, value in group_dict.items()],
@@ -1985,6 +2060,7 @@ class csv(object):
         new_csv._copy_property(self)
         return new_csv
 
+    @set_row_range
     def cross_count(self, col_idx1, col_idx2, row_start_idx=0, row_end_idx=None, field_fmt='{count} ({percent}%)'):
         """
         選択した2列(col_idx1, col_idx2)をクロス集計したcsvデータを返す
@@ -2039,7 +2115,7 @@ class csv(object):
             return
         p_csv = csv([[char for char in row] for row in p.strip('\n').split('\n')]) #枠パターンを参照するcsvデータ
         p_csv._display_delimiter = '' #枠の表示が崩れないように表示用デリミタを空にする(デバッグ用)
-        #p_csv.print()###
+        #p_csv.print() ###
 
         #csvデータをコピー & データに穴があれば埋める
         columns = row2column(self.csv)
@@ -2056,18 +2132,18 @@ class csv(object):
             p_columns = row2column(p_csv.csv)
             row_increase = d_csv._row_len() - p_csv._row_len()//2
             p_center = {'row': p_csv._row_center(), 'col': p_csv._col_center()} #初期値(行を増加させる前の値を確保)
-            #print(f'row_increase: {row_increase}')###
+            #print(f'row_increase: {row_increase}') ###
             for col_idx in range(p_csv._col_len()):
                 L = p_columns[col_idx][p_center['row']-1: p_center['row']+1][::-1]
                 L = L*(row_increase//2 + row_increase%2)
                 R = p_columns[col_idx][p_center['row']: p_center['row']+2][::-1]
                 R = R*(row_increase//2)
-                #print(f'row: L:{L}, R:{R}')###
+                #print(f'row: L:{L}, R:{R}') ###
                 C = L + [p_columns[col_idx][p_center['row']]] + R
                 p_columns[col_idx] = p_columns[col_idx][:p_center['row']] + C + p_columns[col_idx][p_center['row']+1:]
             p_csv.csv = row2column(p_columns)
-        #p_csv.print()###
-        #print(f'p_csv len 2: {p_csv._row_len()}, {p_csv._col_len()}')###
+        #p_csv.print() ###
+        #print(f'p_csv len 2: {p_csv._row_len()}, {p_csv._col_len()}') ###
 
         #枠パターンの列数を増減(d_csvの列が入るよう)
         if p_csv._col_len()//2 == d_csv._col_len(): #同じ大きさ
@@ -2079,17 +2155,17 @@ class csv(object):
         else: #d_csvが枠パターンより大きい
             col_increase = d_csv._col_len() - p_csv._col_len()//2
             p_center = {'row': p_csv._row_center(), 'col': p_csv._col_center()} #初期値(列を増加させる前の値を確保)
-            #print(f'col_increase: {col_increase}')###
+            #print(f'col_increase: {col_increase}') ###
             for row_idx in range(p_csv._row_len()):
                 L = p_csv.csv[row_idx][p_center['col']-1: p_center['col']+1][::-1]
                 L = L*(col_increase//2 + col_increase%2)
                 R = p_csv.csv[row_idx][p_center['col']: p_center['col']+2][::-1]
                 R = R*(col_increase//2)
-                #print(f'col: L:{L}, R:{R}')###
+                #print(f'col: L:{L}, R:{R}') ###
                 C = L + [p_csv.csv[row_idx][p_center['col']]] + R
                 p_csv.csv[row_idx] = p_csv.csv[row_idx][:p_center['col']] + C + p_csv.csv[row_idx][p_center['col']+1:]
-        #p_csv.print()###
-        #print(f'p_csv len 3: {p_csv._row_len()}, {p_csv._col_len()}')###
+        #p_csv.print() ###
+        #print(f'p_csv len 3: {p_csv._row_len()}, {p_csv._col_len()}') ###
 
         #枠のグループ化(隣接するフィールド値が同じならば、その境界の枠をスペースにする)
         if self.border_grouping:
@@ -2097,10 +2173,10 @@ class csv(object):
             col_diff = [[field != next_field for field, next_field in zip(row[:-1], row[1:])] for row in d_csv.csv]
             row_diff = [[field != next_field for field, next_field in zip(col[:-1], col[1:])] for col in columns]
             row_diff = row2column(row_diff)
-            #print(f'col_diff: {repr(col_diff)}')###
-            #print(f'row_diff: {repr(row_diff)}')###
-            #if col_diff and col_diff[0]: col_diff_csv = csv(col_diff); print('col_diff:\n'); col_diff_csv.print()###
-            #if row_diff and row_diff[0]: row_diff_csv = csv(row_diff); print('row_diff:\n'); row_diff_csv.print()###
+            #print(f'col_diff: {repr(col_diff)}') ###
+            #print(f'row_diff: {repr(row_diff)}') ###
+            #if col_diff and col_diff[0]: col_diff_csv = csv(col_diff); print('col_diff:\n'); col_diff_csv.print() ###
+            #if row_diff and row_diff[0]: row_diff_csv = csv(row_diff); print('row_diff:\n'); row_diff_csv.print() ###
 
             for row_idx, row_data in enumerate(col_diff):
                 for idx, diff in enumerate(row_data):
@@ -2111,7 +2187,7 @@ class csv(object):
                 for idx, diff in enumerate(row_data):
                     if not diff:
                         p_csv.csv[row_idx*2+2][idx*2+1] = ' '
-            #p_csv.print()###
+            #p_csv.print() ###
 
         #multiple-lines
         if self.multiple_lines:
@@ -2119,35 +2195,36 @@ class csv(object):
             d_csv = d_csv if new_d_csv is None else new_d_csv
             p_csv = p_csv if new_p_csv is None else new_p_csv
             columns = row2column(d_csv.csv)
-            #d_csv.print()###
-            #p_csv.print()###
+            #d_csv.print() ###
+            #p_csv.print() ###
 
         #alignとwidthを適用した文字列生成
         #width設定
         col_max_widths = _max_widths(columns, grouping_opt=self.grouping_opt, precision=self.precision)
-        #print(f'col_max_widths: {col_max_widths}')###
+        #print(f'col_max_widths: {col_max_widths}') ###
         if widths is not None and isinstance(widths, dict):
             c_widths = defaultdict(lambda:0)
             c_widths.update(widths)
             col_max_widths = [c_widths[col_idx] if c_widths[col_idx] > col_max_width else col_max_width
                               for col_idx, col_max_width in enumerate(col_max_widths)] #widthsを取り込む(大きい値を採用)
-            #print(f'col_max_widths: {col_max_widths}(カスタム化)')###
+            #print(f'col_max_widths: {col_max_widths}(カスタム化)') ###
         col_max_widths = [width if width%2 == 0 else width+1 for width in col_max_widths] #文字幅2のフィールド値や枠にも対応できるようにwidthを偶数にする
-        #print(f'col_max_widths: {col_max_widths}')###
+        #print(f'col_max_widths: {col_max_widths}') ###
         widths = dict([(i, w) for i,w in enumerate(col_max_widths)])
         s = _uniform_width(d_csv.csv, field_delimiter=',', header_aligns=header_aligns, aligns=aligns, widths=widths, grouping_opt=self.grouping_opt, precision=self.precision)
         d_csv = csv([[field for field in row.split(',')] for row in s.split('\n')]) #csvデータ化(alignとwidth情報を消さないように各フィールドはstripしない)
-        #d_csv.print()###
+        #d_csv.print() ###
 
         #p_csvにd_csvの値を入れる
         for row_idx, row_data in enumerate(p_csv.csv):
-            for idx, field in enumerate(row_data):
+            for idx, p_field in enumerate(row_data):
                 if idx % 2 == 1:
                     if row_idx % 2 == 0:
-                        if _is_em(field):
-                            p_csv.csv[row_idx][idx] = field * (col_max_widths[idx//2]//2) #各列の文字幅に合うように枠の数を調整
+                        col_max_width = col_max_widths[idx//2]
+                        if _is_em(p_field):
+                            p_csv.csv[row_idx][idx] = p_field * (col_max_width//2) #各列の文字幅に合うように枠の数を調整
                         else:
-                            p_csv.csv[row_idx][idx] = field * (col_max_widths[idx//2]) #各列の文字幅に合うように枠の数を調整
+                            p_csv.csv[row_idx][idx] = p_field * col_max_width #各列の文字幅に合うように枠の数を調整
                     else:
                         p_csv.csv[row_idx][idx] = d_csv.csv[row_idx//2][idx//2] #p_csvにd_csvの値を入れる
 
@@ -2217,15 +2294,16 @@ def chk_border():
 #------------------------------
 # 非公開関数
 #------------------------------
-def _wrapper_func(func):
+def _non_error(func, err_value=''):
     """
     func関数のエラーを吸収するラッパー関数を返す
+        err_value: エラーの場合に返す値
     """
     def wrapper_func(*args):
         try:
             ret = func(*args)
         except:
-            ret = '' #func処理の結果がエラーならばfunc結果は空にする
+            ret = err_value
         return ret
     return wrapper_func
 
@@ -2278,18 +2356,18 @@ def _uniform_width(csv_data, row_start_idx=0, row_end_idx=None, field_delimiter=
     if aligns is not None and isinstance(aligns, dict):
         col_aligns = [aligns.get(col_idx) if aligns.get(col_idx) is not None else col_align 
                       for col_idx, col_align in enumerate(col_aligns)]
-        #print(f'col_aligns: {col_aligns}(カスタム化)')
+        #print(f'col_aligns: {col_aligns}(カスタム化)') ###
 
     #width設定
     col_max_widths = _max_widths(columns, grouping_opt=grouping_opt, precision=precision) #各列の最大文字列幅
-    #print(f'col_max_widths: {col_max_widths}')
-    #print(f'widths: {widths}')
+    #print(f'col_max_widths: {col_max_widths}') ###
+    #print(f'widths: {widths}') ###
     if widths is not None and isinstance(widths, dict):
         c_widths = defaultdict(lambda:0)
         c_widths.update(widths)
         col_max_widths = [c_widths[col_idx] if c_widths[col_idx] > col_max_width else col_max_width 
                           for col_idx, col_max_width in enumerate(col_max_widths)]
-        #print(f'col_max_widths: {col_max_widths}(カスタム化)')
+        #print(f'col_max_widths: {col_max_widths}(カスタム化)') ###
 
     #ヘッダーalign設定
     h_aligns = col_aligns[:] #初期設定はcol_aligns
@@ -2298,7 +2376,7 @@ def _uniform_width(csv_data, row_start_idx=0, row_end_idx=None, field_delimiter=
                     for col_idx, h_align in enumerate(h_aligns)]
     if isinstance(header_aligns, str):
         h_aligns = [header_aligns for _ in col_aligns]
-    #print(f'h_aligns: {h_aligns}')
+    #print(f'h_aligns: {h_aligns}') ###
 
     def get_format(row_idx, col_idx, field):
         #align
