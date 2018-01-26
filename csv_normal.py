@@ -1040,6 +1040,63 @@
 #       
 #       
 #----------------------------------------------------------------------------------------------------
+#       #欠損データを気にせずに集計が可能
+#       #   データ内にブランク行があったり、一部のデータが欠けている場合は集計の邪魔になるためデータを整える必要があった
+#       #   この問題を解決するために集計関数を「目的のデータだけ受け取るラッパー関数にする」機能が用意されている
+#       #
+#       >>> n = csv.csv([[i for i in range(1,j)] for j in range(2,7)])
+#       >>> n.fill()
+#       >>> n.print2() #欠損データ(空フィールド)がある
+#       +--+--+--+--+--+
+#       | 1|           |
+#       +  +--+  +  +  +
+#       | 1| 2|        |
+#       +  +  +--+  +  +
+#       | 1| 2| 3|     |
+#       +  +  +  +--+  +
+#       | 1| 2| 3| 4|  |
+#       +  +  +  +  +--+
+#       | 1| 2| 3| 4| 5|
+#       +--+--+--+--+--+
+#       >>> 
+#       >>> n.print_contextmanager = csv.print_contextmanager.aggregate_col(sum)
+#       >>> n.print2() #合計値を集計できるのは欠損データが無いインデックス0の列だけ
+#       +--+--+--+--+--+
+#       | 1|           |
+#       +  +--+  +  +  +
+#       | 1| 2|        |
+#       +  +  +--+  +  +
+#       | 1| 2| 3|     |
+#       +  +  +  +--+  +
+#       | 1| 2| 3| 4|  |
+#       +  +  +  +  +--+
+#       | 1| 2| 3| 4| 5|
+#       +--+--+--+--+--+
+#       | 5|           |
+#       +--+--+--+--+--+
+#       >>> 
+#
+#
+#       #csv.wrapper.args_of_numで集計関数sumをラップして数字だけが渡るようにする
+#       >>> sum_nums = csv.wrapper.args_of_num(sum)
+#       >>> n.print_contextmanager = csv.print_contextmanager.aggregate_col(sum_nums)
+#       >>> n.print2() #空データが無視されて各列の合計値を集計できる
+#       +--+--+--+--+--+
+#       | 1|           |
+#       +  +--+  +  +  +
+#       | 1| 2|        |
+#       +  +  +--+  +  +
+#       | 1| 2| 3|     |
+#       +  +  +  +--+  +
+#       | 1| 2| 3| 4|  |
+#       +  +  +  +  +--+
+#       | 1| 2| 3| 4| 5|
+#       +--+--+--+--+  +
+#       | 5| 8| 9| 8| 5|
+#       +--+--+--+--+--+
+#       
+#       
+#----------------------------------------------------------------------------------------------------
 #       #csvデータの表示を他のアプリケーションで行う
 #       #   IDLEやターミナルなどは横スクロール機能が無いため、csvの列データが多すぎると表示が折り返されて正常に表示できない
 #       #   この問題を解決するために、print関連のメソッドの出力をファイルに保存する機能が用意されている
@@ -1079,10 +1136,10 @@
 #
 #       
 
-__all__ = ['csv', 'print_contextmanager', #class
+__all__ = ['csv', 'print_contextmanager', 'wrapper', #class
            'load', 'str2csv', 'list2csv', 'dict2csv', 'str2list', 'list2str', 'row2column', 'chk_border', #public function
            ]
-__version__ = '3.1.0'
+__version__ = '3.1.1'
 __author__ = 'ShiraiTK'
 
 from collections import Counter, defaultdict
@@ -1195,6 +1252,50 @@ class print_contextmanager(object):
             yield
             del(csv_self.csv[-1])
         return contextmanager_func
+
+#------------------------------
+# wrapperクラス
+#------------------------------
+class wrapper(object):
+    @staticmethod
+    def non_error(func, err_value=''):
+        """
+        func関数のエラーを吸収するラッパー関数を返す
+            err_value: エラーの場合に返す値
+        """
+        def wrapper_func(*args, **kwargs):
+            try:
+                ret = func(*args, **kwargs)
+            except:
+                ret = err_value
+            return ret
+        return wrapper_func
+
+    @staticmethod
+    def args_of_num(func):
+        """
+        funcの引数であるリストの構成要素のうち数字の要素だけを取り出し、これを引数としてfuncで実行するラッパー関数を返す
+        """
+        def wrapper_func(lst):
+            if isinstance(lst, list) or isinstance(lst, tuple):
+                num_lst = [i for i in lst if isinstance(i, int) or isinstance(i, float)] #数字以外は除外
+            else:
+                raise TypeError(f'unsupported {type(lst)}')
+            return func(num_lst)
+        return wrapper_func
+
+    @staticmethod
+    def args_of_str(func):
+        """
+        funcの引数であるリストの構成要素のうち文字列の要素だけを取り出し、これを引数としてfuncで実行するラッパー関数を返す
+        """
+        def wrapper_func(lst):
+            if isinstance(lst, list) or isinstance(lst, tuple):
+                num_lst = [i for i in lst if isinstance(i, str)] #文字列以外は除外
+            else:
+                raise TypeError(f'unsupported {type(lst)}')
+            return func(num_lst)
+        return wrapper_func
 
 #------------------------------
 # csvクラス
@@ -1944,8 +2045,9 @@ class csv(object):
     def map(self, func=None, row_start_idx=0, row_end_idx=None):
         """
         行範囲[row_start_idx:row_end_idx]をmapしたcsvインスタンスを返す
+            funcがエラーになる場合は空文字('')を返す
         """
-        wrapper_func = _non_error(func) #func処理でエラーなら''を返すラッパー関数
+        wrapper_func = wrapper.non_error(func) #func処理でエラーなら''を返すラッパー関数
         csv_data = [*self.csv[0:row_start_idx],
                     *map(wrapper_func, self.csv[row_start_idx:row_end_idx]),
                     *([] if row_end_idx is None else self.csv[row_end_idx:])
@@ -1958,16 +2060,18 @@ class csv(object):
     def map_rows(self, func=None, row_start_idx=0, row_end_idx=None):
         """
         self.csvの各行をmapした配列を返す
+            funcがエラーになる場合は空文字('')を返す
         """
-        wrapper_func = _non_error(func)
+        wrapper_func = wrapper.non_error(func)
         return list(map(wrapper_func, self.csv[row_start_idx:row_end_idx]))
 
     @set_row_range
     def map_columns(self, func=None, row_start_idx=0, row_end_idx=None):
         """
         self.csvの各列をmapした配列を返す
+            funcがエラーになる場合は空文字('')を返す
         """
-        wrapper_func = _non_error(func)
+        wrapper_func = wrapper.non_error(func)
         return list(map(wrapper_func, row2column(self.csv[row_start_idx:row_end_idx])))
 
     @set_row_range
@@ -1975,8 +2079,9 @@ class csv(object):
         """
         各列間のfunc処理の結果を返す
             各列の同じ行の値がfuncに入力され、その処理結果を収めた配列を返す
+            funcがエラーになる場合は空文字('')を返す
         """
-        wrapper_func = _non_error(func) #func処理でエラーなら''を返すラッパー関数
+        wrapper_func = wrapper.non_error(func) #func処理でエラーなら''を返すラッパー関数
         if not hasattr(col_idxs, '__iter__'): #指定インデックスが1つのみの場合
             col_idxs = (col_idxs,)
 
@@ -2020,6 +2125,7 @@ class csv(object):
             grouping_col_idxs: グループ化対象の列
             target_col_idxs: 集計対象の列(Noneならgrouping_col_idxs以外の全ての列)
             func: 集計関数(target_col_idxsを集計する関数)
+                  funcがエラーになる場合は空文字('')を返す
         """
         if func is None:
             func = lambda fields: self.multiple_lines_delimiter.join(map(str, fields))
@@ -2051,7 +2157,7 @@ class csv(object):
                          row_start_idx=row_start_idx, row_end_idx=row_end_idx)
         #print(group_dict) ###
 
-        wrapper_func = _non_error(func) #func処理でエラーなら''を返すラッパー関数
+        wrapper_func = wrapper.non_error(func) #func処理でエラーなら''を返すラッパー関数
         arranged_csv = self.arrange_columns(*(grouping_col_idxs+target_col_idxs))
         new_csv = csv([*arranged_csv.csv[0:row_start_idx],
                        *[list(key)+[_str2int_or_float(wrapper_func(args)) for args in zip(*value)] for key, value in group_dict.items()],
@@ -2294,19 +2400,6 @@ def chk_border():
 #------------------------------
 # 非公開関数
 #------------------------------
-def _non_error(func, err_value=''):
-    """
-    func関数のエラーを吸収するラッパー関数を返す
-        err_value: エラーの場合に返す値
-    """
-    def wrapper_func(*args):
-        try:
-            ret = func(*args)
-        except:
-            ret = err_value
-        return ret
-    return wrapper_func
-
 def _file_obj2csv(fileObj):
     """
     ファイルオブジェクトからcsvデータを読み出す
