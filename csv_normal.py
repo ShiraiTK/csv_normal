@@ -21,9 +21,9 @@
 #       #print関数でcsvデータを行列表示(先頭5行まで表示し、残りは省略表示する)
 #       >>> print(c)
 #       Name   , Strength   , Buttle Power, Birthdate   , Sex   , Race     , Height(cm), Weight(kg)
-#       Goku   , very strong,      3000000, Age-737-year, Male  , Saiyan   ,        175,         62
-#       Vegeta , very strong,      2000000, Age-732-year, Male  , Saiyan   ,        164,         56
-#       Piccolo, strong     ,      1000000, Age-753-year, Male  , Namekian ,        226,        116
+#       Goku   , very strong,    3_000_000, Age-737-year, Male  , Saiyan   ,        175,         62
+#       Vegeta , very strong,    2_000_000, Age-732-year, Male  , Saiyan   ,        164,         56
+#       Piccolo, strong     ,    1_000_000, Age-753-year, Male  , Namekian ,        226,        116
 #       Bulma  , very weak  ,            3, Age-733-year, Female, Earthling,        165,         49
 #       ↓(There are 2 rows)
 #       
@@ -31,25 +31,27 @@
 #       #printメソッドでcsvデータを行列表示(全データを表示する)
 #       >>> c.print()
 #       Name   , Strength   , Buttle Power, Birthdate   , Sex   , Race     , Height(cm), Weight(kg)
-#       Goku   , very strong,      3000000, Age-737-year, Male  , Saiyan   ,        175,         62
-#       Vegeta , very strong,      2000000, Age-732-year, Male  , Saiyan   ,        164,         56
-#       Piccolo, strong     ,      1000000, Age-753-year, Male  , Namekian ,        226,        116
+#       Goku   , very strong,    3_000_000, Age-737-year, Male  , Saiyan   ,        175,         62
+#       Vegeta , very strong,    2_000_000, Age-732-year, Male  , Saiyan   ,        164,         56
+#       Piccolo, strong     ,    1_000_000, Age-753-year, Male  , Namekian ,        226,        116
 #       Bulma  , very weak  ,            3, Age-733-year, Female, Earthling,        165,         49
-#       Krillin, good       ,        75000, Age-736-year, Male  , Earthling,        153,         45
-#       Yamcha , weak       ,         1480, Age-733-year, Male  , Earthling,        183,         68
+#       Krillin, good       ,       75_000, Age-736-year, Male  , Earthling,        153,         45
+#       Yamcha , weak       ,        1_480, Age-733-year, Male  , Earthling,        183,         68
 #       
 #
-#       #csvデータでヘッダー＆フッターを含まないデータ範囲をsliceで指定する
-#       #sample.csvのデータはインデックス0の行がヘッダーなのでslice(1, None)と設定
+#       #heaer_idxプロパティにヘッダーのインデックスを設定する
+#       #data_row_rangeプロパティにヘッダー＆フッターを含まないデータ範囲をsliceで指定する
 #       #
-#       >>> c.data_row_range = slice(1, None) #データ範囲を指定(インデックス0の行はヘッダー)
+#       >>> c.header_idx #ヘッダーはインデックス0の行なので初期値のままでOK
+#       0
+#       >>> c.data_row_range = slice(1, None) #データ範囲を指定
 #
 #
 #       #printメソッドはcsvデータの表示範囲を選択できる
 #       >>> c.print(3)
 #       Name  , Strength   , Buttle Power, Birthdate   , Sex , Race  , Height(cm), Weight(kg)
-#       Goku  , very strong,      3000000, Age-737-year, Male, Saiyan,        175,         62
-#       Vegeta, very strong,      2000000, Age-732-year, Male, Saiyan,        164,         56
+#       Goku  , very strong,    3_000_000, Age-737-year, Male, Saiyan,        175,         62
+#       Vegeta, very strong,    2_000_000, Age-732-year, Male, Saiyan,        164,         56
 #       ↓(There are 4 rows)
 #       
 #       
@@ -58,48 +60,25 @@
 #       +--------+------------+------------+------------+------+----------+----------+----------+
 #       |Name    |Strength    |Buttle Power|Birthdate   |Sex   |Race      |Height(cm)|Weight(kg)|
 #       +--------+------------+------------+------------+------+----------+----------+----------+
-#       |Goku    |very strong |     3000000|Age-737-year|Male  |Saiyan    |       175|        62|
+#       |Goku    |very strong |   3_000_000|Age-737-year|Male  |Saiyan    |       175|        62|
 #       +--------+            +------------+------------+      +          +----------+----------+
-#       |Vegeta  |very strong |     2000000|Age-732-year|Male  |Saiyan    |       164|        56|
+#       |Vegeta  |very strong |   2_000_000|Age-732-year|Male  |Saiyan    |       164|        56|
 #       +--------+------------+------------+------------+      +----------+----------+----------+
-#       |Piccolo |strong      |     1000000|Age-753-year|Male  |Namekian  |       226|       116|
+#       |Piccolo |strong      |   1_000_000|Age-753-year|Male  |Namekian  |       226|       116|
 #       +--------+------------+------------+------------+------+----------+----------+----------+
 #       |Bulma   |very weak   |           3|Age-733-year|Female|Earthling |       165|        49|
 #       +--------+------------+------------+------------+------+          +----------+----------+
-#       |Krillin |good        |       75000|Age-736-year|Male  |Earthling |       153|        45|
+#       |Krillin |good        |      75_000|Age-736-year|Male  |Earthling |       153|        45|
 #       +--------+------------+------------+------------+      +          +----------+----------+
-#       |Yamcha  |weak        |        1480|Age-733-year|Male  |Earthling |       183|        68|
+#       |Yamcha  |weak        |       1_480|Age-733-year|Male  |Earthling |       183|        68|
 #       +--------+------------+------------+------------+------+----------+----------+----------+
 #       
 #       
 #       #デフォルト設定では枠のグループ化機能が有効になっているため、
 #       #隣接するフィールド値が同じ場合は境界の枠が消えてグループ化される
-#       #   border_grouping:
-#       #       Falseで枠のグループ化機能を無効にできる
+#       #   border_grouping: Falseで枠のグループ化機能を無効にできる
 #       #
 #       >>> c.border_grouping = False
-#       >>> c.print2()
-#       +--------+------------+------------+------------+------+----------+----------+----------+
-#       |Name    |Strength    |Buttle Power|Birthdate   |Sex   |Race      |Height(cm)|Weight(kg)|
-#       +--------+------------+------------+------------+------+----------+----------+----------+
-#       |Goku    |very strong |     3000000|Age-737-year|Male  |Saiyan    |       175|        62|
-#       +--------+------------+------------+------------+------+----------+----------+----------+
-#       |Vegeta  |very strong |     2000000|Age-732-year|Male  |Saiyan    |       164|        56|
-#       +--------+------------+------------+------------+------+----------+----------+----------+
-#       |Piccolo |strong      |     1000000|Age-753-year|Male  |Namekian  |       226|       116|
-#       +--------+------------+------------+------------+------+----------+----------+----------+
-#       |Bulma   |very weak   |           3|Age-733-year|Female|Earthling |       165|        49|
-#       +--------+------------+------------+------------+------+----------+----------+----------+
-#       |Krillin |good        |       75000|Age-736-year|Male  |Earthling |       153|        45|
-#       +--------+------------+------------+------------+------+----------+----------+----------+
-#       |Yamcha  |weak        |        1480|Age-733-year|Male  |Earthling |       183|        68|
-#       +--------+------------+------------+------------+------+----------+----------+----------+
-#       
-#       
-#       #grouping_optプロパティをTrueにすると千倍ごとの数字の区切り文字にアンダースコアが使用され可読性があがる
-#       #   ※数値リテラル内のアンダースコアはPython3.6から追加された新機能
-#       #
-#       >>> c.grouping_opt = True
 #       >>> c.print2()
 #       +--------+------------+------------+------------+------+----------+----------+----------+
 #       |Name    |Strength    |Buttle Power|Birthdate   |Sex   |Race      |Height(cm)|Weight(kg)|
@@ -115,6 +94,29 @@
 #       |Krillin |good        |      75_000|Age-736-year|Male  |Earthling |       153|        45|
 #       +--------+------------+------------+------------+------+----------+----------+----------+
 #       |Yamcha  |weak        |       1_480|Age-733-year|Male  |Earthling |       183|        68|
+#       +--------+------------+------------+------------+------+----------+----------+----------+
+#       
+#       
+#       #デフォルト設定では数字の区切り文字表示機能(千倍ごとにアンダースコアで数字を区切る)が有効になっている
+#       #※数値リテラル内のアンダースコアはPython3.6から追加された新機能
+#       #   grouping_opt: Falseで数字の区切り文字表示機能を無効にできる
+#       #
+#       >>> c.grouping_opt = False
+#       >>> c.print2()
+#       +--------+------------+------------+------------+------+----------+----------+----------+
+#       |Name    |Strength    |Buttle Power|Birthdate   |Sex   |Race      |Height(cm)|Weight(kg)|
+#       +--------+------------+------------+------------+------+----------+----------+----------+
+#       |Goku    |very strong |     3000000|Age-737-year|Male  |Saiyan    |       175|        62|
+#       +--------+------------+------------+------------+------+----------+----------+----------+
+#       |Vegeta  |very strong |     2000000|Age-732-year|Male  |Saiyan    |       164|        56|
+#       +--------+------------+------------+------------+------+----------+----------+----------+
+#       |Piccolo |strong      |     1000000|Age-753-year|Male  |Namekian  |       226|       116|
+#       +--------+------------+------------+------------+------+----------+----------+----------+
+#       |Bulma   |very weak   |           3|Age-733-year|Female|Earthling |       165|        49|
+#       +--------+------------+------------+------------+------+----------+----------+----------+
+#       |Krillin |good        |       75000|Age-736-year|Male  |Earthling |       153|        45|
+#       +--------+------------+------------+------------+------+----------+----------+----------+
+#       |Yamcha  |weak        |        1480|Age-733-year|Male  |Earthling |       183|        68|
 #       +--------+------------+------------+------------+------+----------+----------+----------+
 #       
 #       
@@ -123,12 +125,12 @@
 #       >>> c.print2()
 #        Name     Strength     Buttle Power Birthdate    Sex    Race       Height(cm) Weight(kg) 
 #        -------- ------------ ------------ ------------ ------ ---------- ---------- ---------- 
-#        Goku     very strong     3_000_000 Age-737-year Male   Saiyan            175         62 
-#        Vegeta   very strong     2_000_000 Age-732-year Male   Saiyan            164         56 
-#        Piccolo  strong          1_000_000 Age-753-year Male   Namekian          226        116 
+#        Goku     very strong       3000000 Age-737-year Male   Saiyan            175         62 
+#        Vegeta   very strong       2000000 Age-732-year Male   Saiyan            164         56 
+#        Piccolo  strong            1000000 Age-753-year Male   Namekian          226        116 
 #        Bulma    very weak               3 Age-733-year Female Earthling         165         49 
-#        Krillin  good               75_000 Age-736-year Male   Earthling         153         45 
-#        Yamcha   weak                1_480 Age-733-year Male   Earthling         183         68 
+#        Krillin  good                75000 Age-736-year Male   Earthling         153         45 
+#        Yamcha   weak                 1480 Age-733-year Male   Earthling         183         68
 #       
 #       
 #       >>> c.print2_border = 'Psql'
@@ -136,12 +138,12 @@
 #       +--------+------------+------------+------------+------+----------+----------+----------+
 #       |Name    |Strength    |Buttle Power|Birthdate   |Sex   |Race      |Height(cm)|Weight(kg)|
 #       +--------+------------+------------+------------+------+----------+----------+----------+
-#       |Goku    |very strong |   3_000_000|Age-737-year|Male  |Saiyan    |       175|        62|
-#       |Vegeta  |very strong |   2_000_000|Age-732-year|Male  |Saiyan    |       164|        56|
-#       |Piccolo |strong      |   1_000_000|Age-753-year|Male  |Namekian  |       226|       116|
+#       |Goku    |very strong |     3000000|Age-737-year|Male  |Saiyan    |       175|        62|
+#       |Vegeta  |very strong |     2000000|Age-732-year|Male  |Saiyan    |       164|        56|
+#       |Piccolo |strong      |     1000000|Age-753-year|Male  |Namekian  |       226|       116|
 #       |Bulma   |very weak   |           3|Age-733-year|Female|Earthling |       165|        49|
-#       |Krillin |good        |      75_000|Age-736-year|Male  |Earthling |       153|        45|
-#       |Yamcha  |weak        |       1_480|Age-733-year|Male  |Earthling |       183|        68|
+#       |Krillin |good        |       75000|Age-736-year|Male  |Earthling |       153|        45|
+#       |Yamcha  |weak        |        1480|Age-733-year|Male  |Earthling |       183|        68|
 #       +--------+------------+------------+------------+------+----------+----------+----------+
 #       
 #       
@@ -158,17 +160,17 @@
 #       o--------o------------o------------o------------o------o----------o----------o----------o
 #       |Name    |Strength    |Buttle Power|Birthdate   |Sex   |Race      |Height(cm)|Weight(kg)|
 #       o--------o------------o------------o------------o------o----------o----------o----------o
-#       |Goku    |very strong |   3_000_000|Age-737-year|Male  |Saiyan    |       175|        62|
+#       |Goku    |very strong |     3000000|Age-737-year|Male  |Saiyan    |       175|        62|
 #       o--------o------------o------------o------------o------o----------o----------o----------o
-#       |Vegeta  |very strong |   2_000_000|Age-732-year|Male  |Saiyan    |       164|        56|
+#       |Vegeta  |very strong |     2000000|Age-732-year|Male  |Saiyan    |       164|        56|
 #       o--------o------------o------------o------------o------o----------o----------o----------o
-#       |Piccolo |strong      |   1_000_000|Age-753-year|Male  |Namekian  |       226|       116|
+#       |Piccolo |strong      |     1000000|Age-753-year|Male  |Namekian  |       226|       116|
 #       o--------o------------o------------o------------o------o----------o----------o----------o
 #       |Bulma   |very weak   |           3|Age-733-year|Female|Earthling |       165|        49|
 #       o--------o------------o------------o------------o------o----------o----------o----------o
-#       |Krillin |good        |      75_000|Age-736-year|Male  |Earthling |       153|        45|
+#       |Krillin |good        |       75000|Age-736-year|Male  |Earthling |       153|        45|
 #       o--------o------------o------------o------------o------o----------o----------o----------o
-#       |Yamcha  |weak        |       1_480|Age-733-year|Male  |Earthling |       183|        68|
+#       |Yamcha  |weak        |        1480|Age-733-year|Male  |Earthling |       183|        68|
 #       o--------o------------o------------o------------o------o----------o----------o----------o
 #       
 #       
@@ -179,17 +181,17 @@
 #       +--------+------------+------------+------------+------+----------+----------+----------+
 #       |Name    |Strength    |Buttle Power|Birthdate   |Sex   |Race      |Height(cm)|Weight(kg)|
 #       +--------+------------+------------+------------+------+----------+----------+----------+
-#       |Goku    |very strong |     3000000|Age-737-year|Male  |Saiyan    |       175|        62|
+#       |Goku    |very strong |   3_000_000|Age-737-year|Male  |Saiyan    |       175|        62|
 #       +--------+            +------------+------------+      +          +----------+----------+
-#       |Vegeta  |very strong |     2000000|Age-732-year|Male  |Saiyan    |       164|        56|
+#       |Vegeta  |very strong |   2_000_000|Age-732-year|Male  |Saiyan    |       164|        56|
 #       +--------+------------+------------+------------+      +----------+----------+----------+
-#       |Piccolo |strong      |     1000000|Age-753-year|Male  |Namekian  |       226|       116|
+#       |Piccolo |strong      |   1_000_000|Age-753-year|Male  |Namekian  |       226|       116|
 #       +--------+------------+------------+------------+------+----------+----------+----------+
 #       |Bulma   |very weak   |           3|Age-733-year|Female|Earthling |       165|        49|
 #       +--------+------------+------------+------------+------+          +----------+----------+
-#       |Krillin |good        |       75000|Age-736-year|Male  |Earthling |       153|        45|
+#       |Krillin |good        |      75_000|Age-736-year|Male  |Earthling |       153|        45|
 #       +--------+------------+------------+------------+      +          +----------+----------+
-#       |Yamcha  |weak        |        1480|Age-733-year|Male  |Earthling |       183|        68|
+#       |Yamcha  |weak        |       1_480|Age-733-year|Male  |Earthling |       183|        68|
 #       +--------+------------+------------+------------+------+----------+----------+----------+
 #       
 #       
@@ -197,12 +199,12 @@
 #       >>> c.print_idx()
 #       index, 0      , 1          , 2           , 3           , 4     , 5        , 6         , 7         , index
 #           0, Name   , Strength   , Buttle Power, Birthdate   , Sex   , Race     , Height(cm), Weight(kg), 0    
-#           1, Goku   , very strong,      3000000, Age-737-year, Male  , Saiyan   ,        175,         62, 1    
-#           2, Vegeta , very strong,      2000000, Age-732-year, Male  , Saiyan   ,        164,         56, 2    
-#           3, Piccolo, strong     ,      1000000, Age-753-year, Male  , Namekian ,        226,        116, 3    
+#           1, Goku   , very strong,    3_000_000, Age-737-year, Male  , Saiyan   ,        175,         62, 1    
+#           2, Vegeta , very strong,    2_000_000, Age-732-year, Male  , Saiyan   ,        164,         56, 2    
+#           3, Piccolo, strong     ,    1_000_000, Age-753-year, Male  , Namekian ,        226,        116, 3    
 #           4, Bulma  , very weak  ,            3, Age-733-year, Female, Earthling,        165,         49, 4    
-#           5, Krillin, good       ,        75000, Age-736-year, Male  , Earthling,        153,         45, 5    
-#           6, Yamcha , weak       ,         1480, Age-733-year, Male  , Earthling,        183,         68, 6    
+#           5, Krillin, good       ,       75_000, Age-736-year, Male  , Earthling,        153,         45, 5    
+#           6, Yamcha , weak       ,        1_480, Age-733-year, Male  , Earthling,        183,         68, 6    
 #       index, 0      , 1          , 2           , 3           , 4     , 5        , 6         , 7         , index
 #       
 #
@@ -212,19 +214,19 @@
 #        ......+--------+------------+------------+------------+------+----------+----------+----------+...... 
 #             0|Name    |Strength    |Buttle Power|Birthdate   |Sex   |Race      |Height(cm)|Weight(kg)|0      
 #        ......+--------+------------+------------+------------+------+----------+----------+----------+...... 
-#             1|Goku    |very strong |     3000000|Age-737-year|Male  |Saiyan    |       175|        62|1      
+#             1|Goku    |very strong |   3_000_000|Age-737-year|Male  |Saiyan    |       175|        62|1      
 #        ......+--------+            +------------+------------+      +          +----------+----------+...... 
-#             2|Vegeta  |very strong |     2000000|Age-732-year|Male  |Saiyan    |       164|        56|2      
+#             2|Vegeta  |very strong |   2_000_000|Age-732-year|Male  |Saiyan    |       164|        56|2      
 #        ......+--------+------------+------------+------------+      +----------+----------+----------+...... 
-#             3|Piccolo |strong      |     1000000|Age-753-year|Male  |Namekian  |       226|       116|3      
+#             3|Piccolo |strong      |   1_000_000|Age-753-year|Male  |Namekian  |       226|       116|3      
 #        ......+--------+------------+------------+------------+------+----------+----------+----------+...... 
 #             4|Bulma   |very weak   |           3|Age-733-year|Female|Earthling |       165|        49|4      
 #        ......+--------+------------+------------+------------+------+          +----------+----------+...... 
-#             5|Krillin |good        |       75000|Age-736-year|Male  |Earthling |       153|        45|5      
+#             5|Krillin |good        |      75_000|Age-736-year|Male  |Earthling |       153|        45|5      
 #        ......+--------+------------+------------+------------+      +          +----------+----------+...... 
-#             6|Yamcha  |weak        |        1480|Age-733-year|Male  |Earthling |       183|        68|6      
+#             6|Yamcha  |weak        |       1_480|Age-733-year|Male  |Earthling |       183|        68|6      
 #        ......+--------+------------+------------+------------+------+----------+----------+----------+...... 
-#         index:0       :1           :2           :3           :4     :5         :6         :7         :index  
+#         index:0       :1           :2           :3           :4     :5         :6         :7         :index
 #       
 #       
 #       #print_idx2_borderプロパティで枠の種類を変えられる
@@ -233,14 +235,14 @@
 #         index 0        1            2            3            4      5          6          7          index  
 #               -------- ------------ ------------ ------------ ------ ---------- ---------- ----------        
 #             0|Name     Strength     Buttle Power Birthdate    Sex    Race       Height(cm) Weight(kg)|0      
-#             1|Goku     very strong       3000000 Age-737-year Male   Saiyan            175         62|1      
-#             2|Vegeta   very strong       2000000 Age-732-year Male   Saiyan            164         56|2      
-#             3|Piccolo  strong            1000000 Age-753-year Male   Namekian          226        116|3      
+#             1|Goku     very strong     3_000_000 Age-737-year Male   Saiyan            175         62|1      
+#             2|Vegeta   very strong     2_000_000 Age-732-year Male   Saiyan            164         56|2      
+#             3|Piccolo  strong          1_000_000 Age-753-year Male   Namekian          226        116|3      
 #             4|Bulma    very weak               3 Age-733-year Female Earthling         165         49|4      
-#             5|Krillin  good                75000 Age-736-year Male   Earthling         153         45|5      
-#             6|Yamcha   weak                 1480 Age-733-year Male   Earthling         183         68|6      
+#             5|Krillin  good               75_000 Age-736-year Male   Earthling         153         45|5      
+#             6|Yamcha   weak                1_480 Age-733-year Male   Earthling         183         68|6      
 #               -------- ------------ ------------ ------------ ------ ---------- ---------- ----------        
-#         index 0        1            2            3            4      5          6          7          index  
+#         index 0        1            2            3            4      5          6          7          index
 #       
 #       
 #       #csvデータへの問い合わせが可能
@@ -269,6 +271,10 @@
 #
 #
 #       #csvデータのヘッダー情報の取得、インデックスの確認が可能
+#       #※header_idxプロパティに設定したインデックスの行をヘッダーとして扱う
+#       #
+#       >>> c.header_idx
+#       0
 #       >>> c.get_header()
 #       ['Name', 'Strength', 'Buttle Power', 'Birthdate', 'Sex', 'Race', 'Height(cm)', 'Weight(kg)']
 #       >>> c.get_header_idx('Race')
@@ -286,9 +292,9 @@
 #       >>> c.del_column(5)
 #       >>> print(c)
 #       Name   , Strength   , Buttle Power, Birthdate   , Sex   , Height(cm), Weight(kg)
-#       Goku   , very strong,      3000000, Age-737-year, Male  ,        175,         62
-#       Vegeta , very strong,      2000000, Age-732-year, Male  ,        164,         56
-#       Piccolo, strong     ,      1000000, Age-753-year, Male  ,        226,        116
+#       Goku   , very strong,    3_000_000, Age-737-year, Male  ,        175,         62
+#       Vegeta , very strong,    2_000_000, Age-732-year, Male  ,        164,         56
+#       Piccolo, strong     ,    1_000_000, Age-753-year, Male  ,        226,        116
 #       Bulma  , very weak  ,            3, Age-733-year, Female,        165,         49
 #       ↓(There are 2 rows)
 #       
@@ -358,8 +364,9 @@
 #       #
 #       >>> bmi = c.cal_columns((4,5), lambda h,w: int(w/(h/100)/(h/100)))
 #       >>> bmi
-#       [20, 20, 22, 17, 19, 20, 20, '', '']
-#       >>> c.add_column(None, ['BMI']+bmi)
+#       ['', 20, 20, 22, 17, 19, 20, 20, '', '']
+#       >>> bmi[0] = 'BMI'
+#       >>> c.add_column(None, bmi)
 #       >>> print(c)
 #       0, Name   , Sex   , Birthdate   , Height(cm), Weight(kg), BMI
 #       1, Goku   , Male  , Age-737-year,        175,         62,  20
@@ -370,7 +377,7 @@
 #       
 #
 #       #インデックス1～8の範囲内の行をBMI係数でsort
-#       #   c.sort(lambda row: row[c['BMI']], True)だと[20, 20, 22, 17, 19, 20, 20, '', '']を
+#       #   c.sort(lambda row: row[c['BMI']], True)だとデータ範囲[20, 20, 22, 17, 19, 20, 20, '', '']を
 #       #   sortすることになり、数字と文字の異なるタイプのsortはできないのでエラーになる
 #       #
 #       #   エラーを回避するために２つの方法がある
@@ -631,34 +638,34 @@
 #       >>> 
 #       >>> t.trim() #空の行、空の列を削除
 #       >>> t.print()
-#       hoge, fuga , HOGE   , FUGA     
-#       a   , b    , c      , d        
-#        123, 12345, 1234567, 123456789
+#       hoge, fuga  , HOGE     , FUGA       
+#       a   , b     , c        , d          
+#        123, 12_345, 1_234_567, 123_456_789
 #       
 #
 #       #列のインデックスを指定してcsvデータを再構築できる
 #       >>> t = t.arrange_columns(3,2,1,0)
 #       >>> t.print()
-#       FUGA     , HOGE   , fuga , hoge
-#       d        , c      , b    , a   
-#       123456789, 1234567, 12345,  123
+#       FUGA       , HOGE     , fuga  , hoge
+#       d          , c        , b     , a   
+#       123_456_789, 1_234_567, 12_345,  123
 #       
 #       
 #       #行のインデックスを指定してcsvデータを再構築できる
 #       >>> t = t.arrange_rows(1,0,2)
 #       >>> t.print()
-#       d        , c      , b    , a   
-#       FUGA     , HOGE   , fuga , hoge
-#       123456789, 1234567, 12345,  123
+#       d          , c        , b     , a   
+#       FUGA       , HOGE     , fuga  , hoge
+#       123_456_789, 1_234_567, 12_345,  123
 #       
 #
 #       #行列の回転もできる(右回転: rotate_right, 左回転: rotate_left)
 #       >>> t.rotate_right()
 #       >>> t.print()
-#       123456789, FUGA, d
-#         1234567, HOGE, c
-#           12345, fuga, b
-#             123, hoge, a
+#       123_456_789, FUGA, d
+#         1_234_567, HOGE, c
+#            12_345, fuga, b
+#               123, hoge, a
 #       
 #
 #----------------------------------------------------------------------------------------------------
@@ -785,17 +792,17 @@
 #       +--------+------------+------------+------------+------+----------+----------+----------+
 #       |Name    |Strength    |Buttle Power|Birthdate   |Sex   |Race      |Height(cm)|Weight(kg)|
 #       +--------+------------+------------+------------+------+----------+----------+----------+
-#       |Goku    |very strong |     3000000|Age-737-year|Male  |Saiyan    |       175|        62|
+#       |Goku    |very strong |   3_000_000|Age-737-year|Male  |Saiyan    |       175|        62|
 #       +--------+            +------------+------------+      +          +----------+----------+
-#       |Vegeta  |very strong |     2000000|Age-732-year|Male  |Saiyan    |       164|        56|
+#       |Vegeta  |very strong |   2_000_000|Age-732-year|Male  |Saiyan    |       164|        56|
 #       +--------+------------+------------+------------+      +----------+----------+----------+
-#       |Piccolo |strong      |     1000000|Age-753-year|Male  |Namekian  |       226|       116|
+#       |Piccolo |strong      |   1_000_000|Age-753-year|Male  |Namekian  |       226|       116|
 #       +--------+------------+------------+------------+------+----------+----------+----------+
 #       |Bulma   |very weak   |           3|Age-733-year|Female|Earthling |       165|        49|
 #       +--------+------------+------------+------------+------+          +----------+----------+
-#       |Krillin |good        |       75000|Age-736-year|Male  |Earthling |       153|        45|
+#       |Krillin |good        |      75_000|Age-736-year|Male  |Earthling |       153|        45|
 #       +--------+------------+------------+------------+      +          +----------+----------+
-#       |Yamcha  |weak        |        1480|Age-733-year|Male  |Earthling |       183|        68|
+#       |Yamcha  |weak        |       1_480|Age-733-year|Male  |Earthling |       183|        68|
 #       +--------+------------+------------+------------+------+----------+----------+----------+
 #       
 #       
@@ -808,7 +815,7 @@
 #       +------+----+--------+------------+----------+----+----------+----------+
 #       |Sex   |Name|Strength|Buttle Power|Birthdate |Race|Height(cm)|Weight(kg)|
 #       +------+----+--------+------------+----------+----+----------+----------+
-#       |Male  |             |     6076480|               |       901|       347|
+#       |Male  |             |   6_076_480|               |       901|       347|
 #       +------+    +        +------------+          +    +----------+----------+
 #       |Female|             |           3|               |       165|        49|
 #       +------+----+--------+------------+----------+----+----------+----------+
@@ -893,11 +900,11 @@
 #       +------+--------+------------+------------+------------+----------+----------+----------+
 #       |Sex   |Name    |Strength    |Buttle Power|Birthdate   |Race      |Height(cm)|Weight(kg)|
 #       +------+--------+------------+------------+------------+----------+----------+----------+
-#       |Male  |Goku    |very strong |     3000000|Age-737-year|Saiyan    |       175|        62|
-#       |      |Vegeta  |very strong |     2000000|Age-732-year|Saiyan    |       164|        56|
-#       |      |Piccolo |strong      |     1000000|Age-753-year|Namekian  |       226|       116|
-#       |      |Krillin |good        |       75000|Age-736-year|Earthling |       153|        45|
-#       |      |Yamcha  |weak        |        1480|Age-733-year|Earthling |       183|        68|
+#       |Male  |Goku    |very strong |   3_000_000|Age-737-year|Saiyan    |       175|        62|
+#       |      |Vegeta  |very strong |   2_000_000|Age-732-year|Saiyan    |       164|        56|
+#       |      |Piccolo |strong      |   1_000_000|Age-753-year|Namekian  |       226|       116|
+#       |      |Krillin |good        |      75_000|Age-736-year|Earthling |       153|        45|
+#       |      |Yamcha  |weak        |       1_480|Age-733-year|Earthling |       183|        68|
 #       +------+--------+------------+------------+------------+----------+----------+----------+
 #       |Female|Bulma   |very weak   |           3|Age-733-year|Earthling |       165|        49|
 #       +------+--------+------------+------------+------------+----------+----------+----------+
@@ -1059,41 +1066,40 @@
 #       | 1| 2| 3| 4| 5|
 #       +--+--+--+--+--+
 #       >>> 
-#       >>> n.print_contextmanager = csv.print_contextmanager.aggregate_col(sum)
-#       >>> n.print2() #合計値を集計できるのは欠損データが無いインデックス0の列だけ
-#       +--+--+--+--+--+
-#       | 1|           |
-#       +  +--+  +  +  +
-#       | 1| 2|        |
-#       +  +  +--+  +  +
-#       | 1| 2| 3|     |
-#       +  +  +  +--+  +
-#       | 1| 2| 3| 4|  |
-#       +  +  +  +  +--+
-#       | 1| 2| 3| 4| 5|
-#       +--+--+--+--+--+
-#       | 5|           |
-#       +--+--+--+--+--+
-#       >>> 
+#       >>> n.print_contextmanager = csv.print_contextmanager.aggregate(sum)
+#       >>> n.print2() #合計値を集計できるのは欠損データが無い行列だけ
+#       +--+--+--+--+--+--+
+#       | 1|              |
+#       +  +--+  +  +  +  +
+#       | 1| 2|           |
+#       +  +  +--+  +  +  +
+#       | 1| 2| 3|        |
+#       +  +  +  +--+  +  +
+#       | 1| 2| 3| 4|     |
+#       +  +  +  +  +--+--+
+#       | 1| 2| 3| 4| 5|15|
+#       +--+--+--+--+--+--+
+#       | 5|              |
+#       +--+--+--+--+--+--+
 #
 #
 #       #csv.wrapper.args_of_numで集計関数sumをラップして数字だけが渡るようにする
 #       >>> sum_nums = csv.wrapper.args_of_num(sum)
-#       >>> n.print_contextmanager = csv.print_contextmanager.aggregate_col(sum_nums)
-#       >>> n.print2() #空データが無視されて各列の合計値を集計できる
-#       +--+--+--+--+--+
-#       | 1|           |
-#       +  +--+  +  +  +
-#       | 1| 2|        |
-#       +  +  +--+  +  +
-#       | 1| 2| 3|     |
-#       +  +  +  +--+  +
-#       | 1| 2| 3| 4|  |
-#       +  +  +  +  +--+
-#       | 1| 2| 3| 4| 5|
-#       +--+--+--+--+  +
-#       | 5| 8| 9| 8| 5|
-#       +--+--+--+--+--+
+#       >>> n.print_contextmanager = csv.print_contextmanager.aggregate(sum_nums)
+#       >>> n.print2() #空データが無視されて各行列の合計値を集計できる
+#       +--+--+--+--+--+--+
+#       | 1|           | 1|
+#       +  +--+  +  +  +--+
+#       | 1| 2|        | 3|
+#       +  +  +--+  +  +--+
+#       | 1| 2| 3|     | 6|
+#       +  +  +  +--+  +--+
+#       | 1| 2| 3| 4|  |10|
+#       +  +  +  +  +--+--+
+#       | 1| 2| 3| 4| 5|15|
+#       +--+--+--+--+  +--+
+#       | 5| 8| 9| 8| 5|35|
+#       +--+--+--+--+--+--+
 #       
 #       
 #----------------------------------------------------------------------------------------------------
@@ -1110,10 +1116,11 @@
 #       #    メモ帳だと外部からの更新を検出できないため閉じてから開きなおす必要がある)
 #       #
 #       >>> c = csv.load('sample.csv', encoding='utf8')
+#       >>> c.data_row_range = slice(1, None)
 #       >>> c.set_print_file('_tmp.html', encoding='utf8') #拡張子がhtmlなので、Windowsの場合は既定ブラウザが起動してファイルが開く
 #       >>> c.print2() #出力は設定したファイル(_tmp.html)に上書き保存されるのでブラウザを更新すれば新しいデータがすぐに見れる
 #       >>>
-#       >>> c.sort(lambda row:row[c['Sex']], row_start_idx=1) #加工して
+#       >>> c.sort(lambda row:row[c['Sex']]) #加工して
 #       >>> c.print2() #ファイルに出力して、ブラウザを更新して確認
 #       >>>
 #       >>> c.set_print_file() #引数無しでset_print_fileメソッドを呼べば設定が解除される
@@ -1123,15 +1130,15 @@
 #       +--------+------------+------------+------------+------+----------+----------+----------+
 #       |Bulma   |very weak   |           3|Age-733-year|Female|Earthling |       165|        49|
 #       +--------+------------+------------+------------+------+----------+----------+----------+
-#       |Goku    |very strong |     3000000|Age-737-year|Male  |Saiyan    |       175|        62|
+#       |Goku    |very strong |   3_000_000|Age-737-year|Male  |Saiyan    |       175|        62|
 #       +--------+            +------------+------------+      +          +----------+----------+
-#       |Vegeta  |very strong |     2000000|Age-732-year|Male  |Saiyan    |       164|        56|
+#       |Vegeta  |very strong |   2_000_000|Age-732-year|Male  |Saiyan    |       164|        56|
 #       +--------+------------+------------+------------+      +----------+----------+----------+
-#       |Piccolo |strong      |     1000000|Age-753-year|Male  |Namekian  |       226|       116|
+#       |Piccolo |strong      |   1_000_000|Age-753-year|Male  |Namekian  |       226|       116|
 #       +--------+------------+------------+------------+      +----------+----------+----------+
-#       |Krillin |good        |       75000|Age-736-year|Male  |Earthling |       153|        45|
+#       |Krillin |good        |      75_000|Age-736-year|Male  |Earthling |       153|        45|
 #       +--------+------------+------------+------------+      +          +----------+----------+
-#       |Yamcha  |weak        |        1480|Age-733-year|Male  |Earthling |       183|        68|
+#       |Yamcha  |weak        |       1_480|Age-733-year|Male  |Earthling |       183|        68|
 #       +--------+------------+------------+------------+------+----------+----------+----------+
 #
 #       
@@ -1139,7 +1146,7 @@
 __all__ = ['csv', 'print_contextmanager', 'wrapper', #class
            'load', 'str2csv', 'list2csv', 'dict2csv', 'str2list', 'list2str', 'row2column', 'chk_border', #public function
            ]
-__version__ = '3.1.1'
+__version__ = '3.1.2'
 __author__ = 'ShiraiTK'
 
 from collections import Counter, defaultdict
@@ -1297,6 +1304,30 @@ class wrapper(object):
             return func(num_lst)
         return wrapper_func
 
+    @staticmethod
+    def _args_of_flatten_multiplelines(func, multiple_lines_delimiter):
+        """
+        multiple-linesのフィールドが含まれていればそれを展開し、これを引数としてfuncで実行するラッパー関数を返す
+            ['hoge\\nfuga\\n123', 4, 5] -> ['hoge', 'fuga', 123, 4, 5]
+        """
+        def wrapper_func(lst):
+            if isinstance(lst, list) or isinstance(lst, tuple):
+                pass
+            else:
+                raise TypeError(f'unsupported {type(lst)}')
+
+            #multiple-linesがあるかチェック
+            if any([multiple_lines_delimiter in i for i in [i for i in lst if isinstance(i, str)]]):
+                new_lst = []
+                [new_lst.extend(i.split(multiple_lines_delimiter))
+                    if isinstance(i,str) and multiple_lines_delimiter in i
+                    else new_lst.append(i) for i in lst]
+                new_lst = [_str2int_or_float(i) for i in new_lst]
+                return func(new_lst)
+            else:
+                return func(lst)
+        return wrapper_func
+
 #------------------------------
 # csvクラス
 #------------------------------
@@ -1310,7 +1341,7 @@ class csv(object):
     _DEFAULT_MULTIPLE_LINES = True
     _DEFAULT_MULTIPLE_LINES_DELIMITER = r'\n'
 
-    _DEFAULT_GROUPING_OPT = False
+    _DEFAULT_GROUPING_OPT = True
     _DEFAULT_PRECISION = 2
     _DEFAULT_DISPLAY_DELIMITER = ', '
     _DEFAULT_HEAD = 5
@@ -2047,9 +2078,9 @@ class csv(object):
         行範囲[row_start_idx:row_end_idx]をmapしたcsvインスタンスを返す
             funcがエラーになる場合は空文字('')を返す
         """
-        wrapper_func = wrapper.non_error(func) #func処理でエラーなら''を返すラッパー関数
+        func = wrapper.non_error(func) #func処理でエラーなら''を返すラッパー関数
         csv_data = [*self.csv[0:row_start_idx],
-                    *map(wrapper_func, self.csv[row_start_idx:row_end_idx]),
+                    *map(func, self.csv[row_start_idx:row_end_idx]),
                     *([] if row_end_idx is None else self.csv[row_end_idx:])
                     ]
         new_csv = csv(csv_data)
@@ -2062,8 +2093,13 @@ class csv(object):
         self.csvの各行をmapした配列を返す
             funcがエラーになる場合は空文字('')を返す
         """
-        wrapper_func = wrapper.non_error(func)
-        return list(map(wrapper_func, self.csv[row_start_idx:row_end_idx]))
+        if self.multiple_lines:
+            func = wrapper._args_of_flatten_multiplelines(func, self.multiple_lines_delimiter)
+        func = wrapper.non_error(func)
+
+        top = ['' for _ in range(len(self.csv[0:row_start_idx]))]
+        bottom = [] if row_end_idx is None else ['' for _ in range(len(self.csv[row_end_idx:]))]
+        return top + list(map(func, self.csv[row_start_idx:row_end_idx])) + bottom
 
     @set_row_range
     def map_columns(self, func=None, row_start_idx=0, row_end_idx=None):
@@ -2071,8 +2107,11 @@ class csv(object):
         self.csvの各列をmapした配列を返す
             funcがエラーになる場合は空文字('')を返す
         """
-        wrapper_func = wrapper.non_error(func)
-        return list(map(wrapper_func, row2column(self.csv[row_start_idx:row_end_idx])))
+        if self.multiple_lines:
+            func = wrapper._args_of_flatten_multiplelines(func, self.multiple_lines_delimiter)
+        func = wrapper.non_error(func)
+
+        return list(map(func, row2column(self.csv[row_start_idx:row_end_idx])))
 
     @set_row_range
     def cal_columns(self, col_idxs, func=None, row_start_idx=0, row_end_idx=None):
@@ -2081,13 +2120,16 @@ class csv(object):
             各列の同じ行の値がfuncに入力され、その処理結果を収めた配列を返す
             funcがエラーになる場合は空文字('')を返す
         """
-        wrapper_func = wrapper.non_error(func) #func処理でエラーなら''を返すラッパー関数
+        func = wrapper.non_error(func) #func処理でエラーなら''を返すラッパー関数
         if not hasattr(col_idxs, '__iter__'): #指定インデックスが1つのみの場合
             col_idxs = (col_idxs,)
 
         columns = [self.get_column(col_idx)[row_start_idx:row_end_idx] for col_idx in col_idxs]
         args = row2column(columns)
-        return [wrapper_func(*arg) for arg in args]
+
+        top = ['' for _ in range(len(self.csv[0:row_start_idx]))]
+        bottom = [] if row_end_idx is None else ['' for _ in range(len(self.csv[row_end_idx:]))]
+        return top + [func(*arg) for arg in args] + bottom
 
     def row2column(self):
         """
@@ -2157,10 +2199,10 @@ class csv(object):
                          row_start_idx=row_start_idx, row_end_idx=row_end_idx)
         #print(group_dict) ###
 
-        wrapper_func = wrapper.non_error(func) #func処理でエラーなら''を返すラッパー関数
+        func = wrapper.non_error(func) #func処理でエラーなら''を返すラッパー関数
         arranged_csv = self.arrange_columns(*(grouping_col_idxs+target_col_idxs))
         new_csv = csv([*arranged_csv.csv[0:row_start_idx],
-                       *[list(key)+[_str2int_or_float(wrapper_func(args)) for args in zip(*value)] for key, value in group_dict.items()],
+                       *[list(key)+[_str2int_or_float(func(args)) for args in zip(*value)] for key, value in group_dict.items()],
                        *([] if row_end_idx is None else arranged_csv.csv[row_end_idx:])])
 
         new_csv._copy_property(self)
