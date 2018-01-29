@@ -2548,7 +2548,10 @@ def _uniform_width(csv_data, row_start_idx=0, row_end_idx=None, field_delimiter=
         if isinstance(field, float):
             dot_precision_type = f'.{precision}f'
 
-        return f'{align}{width}{grouping_option}{dot_precision_type}'
+        if isinstance(field, str) or isinstance(field, int) or isinstance(field, float):
+            return f'{align}{width}{grouping_option}{dot_precision_type}'
+        else:
+            return ''
 
     csv_str = '\n'.join([field_delimiter.join(
                             [f'{col_data:{get_format(row_idx, col_idx, col_data)}}'
