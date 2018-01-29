@@ -996,6 +996,7 @@
 #       +--+--+--+--+  +--+
 #       | 5| 8| 9| 8| 5|35|
 #       +--+--+--+--+--+--+
+#       Add aggregate
 #       >>> n.csv
 #       [[1, 0, 0, 0, 0], [1, 2, 0, 0, 0], [1, 2, 3, 0, 0], [1, 2, 3, 4, 0], [1, 2, 3, 4, 5]] #データは元のまま
 #       >>>
@@ -1017,6 +1018,7 @@
 #       +--+--+--+--+  +
 #       | 5| 8| 9| 8| 5|
 #       +--+--+--+--+--+
+#       Add aggregate_col
 #       >>> n.csv
 #       [[1, 0, 0, 0, 0], [1, 2, 0, 0, 0], [1, 2, 3, 0, 0], [1, 2, 3, 4, 0], [1, 2, 3, 4, 5]] #データは元のまま
 #       >>>
@@ -1035,6 +1037,7 @@
 #       +--+--+--+  +--+
 #       | 3| 6  6| 4| 0|
 #       +--+--+--+--+--+
+#       Add aggregate_col
 #       >>>
 #       >>> n.print_contextmanager = None #Noneで無効化
 #       >>> n.print2()
@@ -1087,6 +1090,7 @@
 #       +--+--+--+--+--+--+
 #       | 5|              |
 #       +--+--+--+--+--+--+
+#       Add aggregate
 #
 #
 #       #csv.wrapper.args_of_numで集計関数sumをラップして数字だけが渡るようにする
@@ -1106,6 +1110,7 @@
 #       +--+--+--+--+  +--+
 #       | 5| 8| 9| 8| 5|35|
 #       +--+--+--+--+--+--+
+#       Add aggregate
 #       
 #       
 #----------------------------------------------------------------------------------------------------
@@ -1153,12 +1158,12 @@
 __all__ = ['csv', 'print_contextmanager', 'wrapper', #class
            'load', 'str2csv', 'list2csv', 'dict2csv', 'str2list', 'list2str', 'row2column', 'chk_border', #public function
            ]
-__version__ = '3.1.2'
+__version__ = '3.1.3'
 __author__ = 'ShiraiTK'
 
 from collections import Counter, defaultdict
 from contextlib import contextmanager
-from itertools import product, zip_longest
+from itertools import chain, product, zip_longest
 import copy
 import functools
 import inspect
@@ -1241,6 +1246,7 @@ class print_contextmanager(object):
             yield
             del(csv_self.csv[-1])
             csv_self.del_column(-1)
+            print('Add aggregate')
         return contextmanager_func
 
     @staticmethod
@@ -1253,6 +1259,7 @@ class print_contextmanager(object):
             csv_self.add_column(None, csv_self.map_rows(func))
             yield
             csv_self.del_column(-1)
+            print('Add aggregate_row')
         return contextmanager_func
 
     @staticmethod
@@ -1265,6 +1272,37 @@ class print_contextmanager(object):
             csv_self.csv.append(csv_self.map_columns(func))
             yield
             del(csv_self.csv[-1])
+            print('Add aggregate_col')
+        return contextmanager_func
+
+    @staticmethod
+    def aggregate_line(func=None, header_field=None):
+        """
+        header_fieldで指定した列を集計対象とし、
+        funcで集計した各行と各列の集計値をprin関連メソッド表示時に追加表示する
+        """
+        @functools.wraps(print_contextmanager.aggregate_line)
+        def contextmanager_func(csv_self):
+            idx = csv_self[header_field]
+            start = csv_self.data_row_range.start
+            stop = csv_self.data_row_range.stop
+            line = [csv_self.split_multiplelines(field) if isinstance(field, str) and csv_self.multiple_lines else [field]
+                    for field in csv_self.get_column(idx)[start:stop]]
+
+            #追加する列
+            top = ['' for _ in range(len(csv_self.csv[0:start]))]
+            bottom = [] if stop is None else ['' for _ in range(len(csv_self.csv[stop:]))]
+            column = top + [func(field) for field in line] + bottom
+            csv_self.add_column(None, column)
+
+            #追加する行
+            row = ['' for _ in range(csv_self.shape()[1])]
+            row[idx] = func(list(chain.from_iterable(line)))
+            csv_self.csv.append(row)
+            yield
+            del(csv_self.csv[-1])
+            csv_self.del_column(-1)
+            print(f'Add aggregate_line: {header_field}')
         return contextmanager_func
 
 #------------------------------
@@ -1883,6 +1921,13 @@ class csv(object):
         chg_csv = self.map(lambda row: [field if re.search(pattern, str(field)) else '' for field in row])
         chg_csv._copy_property(self)
         return chg_csv
+
+    def split_multiplelines(self, multiplelines_field):
+        """
+        multiple-linesフィールドをデリミタ(self.multiple_lines_delimiter)で分割し、
+        各要素をintやfloatに変換可能ならば変換したリストを返す
+        """
+        return [_str2int_or_float(field) for field in multiplelines_field.split(self.multiple_lines_delimiter)]
 
     #------------------------------
     # column操作
