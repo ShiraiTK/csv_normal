@@ -509,46 +509,49 @@
 #       +----+--------+----------+----------+----+----+----------+
 #       
 #       
-#       #表示書式フォーマットをカスタマイズできる
-#       #インデックス4の列(BMI)を中央寄り、幅を10、ヘッダー部分を中央寄りにカスタマイズ
+#       #各列の表示書式フォーマットをカスタマイズできる
+#       #
+#       #   ヘッダー: インデックス0の列は右詰め、それ以外は中央寄せ
+#       #   データー: インデックス4の列は左詰め、それ以外は右詰め
+#       #   文字幅: インデックス5の文字幅は5、それ以外は10
 #       #
 #       #   ※枠で囲んだ後は調整できないのでprint_chg_formatメソッドで調整＆確認後wrap_borderメソッドで囲む
 #       #
-#       >>> man.print_chg_format(header_aligns='^', aligns={4:'^'}, widths={4:10})
-#       No.,  Name  , Height(cm), Weight(kg),    BMI    , Sex, Birthdate
-#         1, Piccolo,        226,        116,     22    , M  , Age 753  
-#         2, Goku   ,        175,         62,     20    , M  , Age 737  
-#         3, Vegeta ,        164,         56,     20    , M  , Age 732  
-#         4, Yamcha ,        183,         68,     20    , M  , Age 733  
-#         5, Trunks ,        170,         60,     20    , M  , Age 766  
-#         6, Krillin,        153,         45,     19    , M  , Age 736  
-#         7,        ,           ,           ,           ,    ,          
-#         8,        ,           ,           ,           ,    ,          
-#         9,        ,           ,           ,           ,    ,          
+#       >>> man.print_chg_format(header_aligns={0:'>', None:'^'}, aligns={4:'<', None:'>'}, widths={5:5, None:10})
+#              No.,    Name   , Height(cm), Weight(kg),    BMI    ,  Sex , Birthdate 
+#                1,    Piccolo,        226,        116, 22        ,     M,    Age 753
+#                2,       Goku,        175,         62, 20        ,     M,    Age 737
+#                3,     Vegeta,        164,         56, 20        ,     M,    Age 732
+#                4,     Yamcha,        183,         68, 20        ,     M,    Age 733
+#                5,     Trunks,        170,         60, 20        ,     M,    Age 766
+#                6,    Krillin,        153,         45, 19        ,     M,    Age 736
+#                7,           ,           ,           ,           ,      ,           
+#                8,           ,           ,           ,           ,      ,           
+#                9,           ,           ,           ,           ,      ,           
 #
-#       >>> man3 = man.wrap_border('Grid', header_aligns='^', aligns={4:'^'}, widths={4:10})
+#       >>> man3 = man.wrap_border('Grid', header_aligns={0:'>', None:'^'}, aligns={4:'<', None:'>'}, widths={5:5, None:10})
 #       >>> man3.print()
-#       +----+--------+----------+----------+----------+----+----------+
-#       |No. |  Name  |Height(cm)|Weight(kg)|   BMI    |Sex |Birthdate |
-#       +====+========+==========+==========+==========+====+==========+
-#       |   1|Piccolo |       226|       116|    22    |M   |Age 753   |
-#       +----+--------+----------+----------+----------+    +----------+
-#       |   2|Goku    |       175|        62|    20    |M   |Age 737   |
-#       +----+--------+----------+----------+          +    +----------+
-#       |   3|Vegeta  |       164|        56|    20    |M   |Age 732   |
-#       +----+--------+----------+----------+          +    +----------+
-#       |   4|Yamcha  |       183|        68|    20    |M   |Age 733   |
-#       +----+--------+----------+----------+          +    +----------+
-#       |   5|Trunks  |       170|        60|    20    |M   |Age 766   |
-#       +----+--------+----------+----------+----------+    +----------+
-#       |   6|Krillin |       153|        45|    19    |M   |Age 736   |
-#       +----+--------+----------+----------+----------+----+----------+
-#       |   7|                                                         |
-#       +----+        +          +          +          +    +          +
-#       |   8|                                                         |
-#       +----+        +          +          +          +    +          +
-#       |   9|                                                         |
-#       +----+--------+----------+----------+----------+----+----------+
+#       +----------+----------+----------+----------+----------+------+----------+
+#       |       No.|   Name   |Height(cm)|Weight(kg)|   BMI    | Sex  |Birthdate |
+#       +==========+==========+==========+==========+==========+======+==========+
+#       |         1|   Piccolo|       226|       116|22        |     M|   Age 753|
+#       +----------+----------+----------+----------+----------+      +----------+
+#       |         2|      Goku|       175|        62|20        |     M|   Age 737|
+#       +----------+----------+----------+----------+          +      +----------+
+#       |         3|    Vegeta|       164|        56|20        |     M|   Age 732|
+#       +----------+----------+----------+----------+          +      +----------+
+#       |         4|    Yamcha|       183|        68|20        |     M|   Age 733|
+#       +----------+----------+----------+----------+          +      +----------+
+#       |         5|    Trunks|       170|        60|20        |     M|   Age 766|
+#       +----------+----------+----------+----------+----------+      +----------+
+#       |         6|   Krillin|       153|        45|19        |     M|   Age 736|
+#       +----------+----------+----------+----------+----------+------+----------+
+#       |         7|                                                             |
+#       +----------+          +          +          +          +      +          +
+#       |         8|                                                             |
+#       +----------+          +          +          +          +      +          +
+#       |         9|                                                             |
+#       +----------+----------+----------+----------+----------+------+----------+
 #       
 #
 #       #csvデータをsample2.csvファイルに保存
@@ -1158,7 +1161,7 @@
 __all__ = ['csv', 'print_contextmanager', 'wrapper', #class
            'load', 'str2csv', 'list2csv', 'dict2csv', 'str2list', 'list2str', 'row2column', 'chk_border', #public function
            ]
-__version__ = '3.1.3'
+__version__ = '3.1.4'
 __author__ = 'ShiraiTK'
 
 from collections import Counter, defaultdict
@@ -1506,12 +1509,11 @@ class csv(object):
         """
         if self.multiple_lines and _chk_multiple_lines:
             m_csv, _ = self._extend_multiple_lines()
-            csv_data = self.csv if m_csv is None else m_csv.csv
+            csv = self if m_csv is None else m_csv
         else:
-            csv_data = self.csv
+            csv = self
 
-        return _uniform_width(csv_data, row_start_idx=row_start_idx, row_end_idx=row_end_idx, field_delimiter=self._display_delimiter,
-                              header_aligns=header_aligns, aligns=aligns, widths=widths, grouping_opt=self.grouping_opt, precision=self.precision)
+        return self._csv_string_format(row_start_idx=row_start_idx, row_end_idx=row_end_idx, header_aligns=header_aligns, aligns=aligns, widths=widths)
 
     @add_print_contextmanager
     def print(self, head=None, tail=None):
@@ -1684,6 +1686,117 @@ class csv(object):
         """
         return Counter([self.csv[row_idx][col_idx] for row_idx in range(len(self.csv))])
 
+    def _csv_string_format(self, row_start_idx=0, row_end_idx=None, header_aligns=None, aligns=None, widths=None):
+        """
+        self.csvの行列を文字列にして返す
+            各列の文字列幅を均一にする(全角文字が混じっていてもズレません)
+            self.csvの行範囲[row_start_idx:row_end_idx]を指定可能
+
+            各列の書式指定を個別に指定できる:
+                ・header_aligns: ヘッダーのalignを設定する辞書{列インデックス: align} (align: 左詰め='<'、右詰め='>', 中央寄せ='^')
+                ・aligns: 各列のalignを設定する辞書{列インデックス: align} (align: 左詰め='<'、右詰め='>', 中央寄せ='^')
+                ・widths: 各列のwidthを設定する辞書{列インデックス: width}
+            ※列インデックスで指定されていない他の全ての設定をNoneキーで設定できる
+        """
+        row_len = len(self.csv)
+        if row_start_idx is not None:
+            remain_toplines_num = len(self.csv[:row_start_idx])
+        else:
+            remain_toplines_num = 0
+
+        if row_end_idx is not None:
+            remain_bottomlines_num = len(self.csv[row_end_idx:])
+        else:
+            remain_bottomlines_num = 0
+
+        csv_data = self.csv[row_start_idx:row_end_idx]
+        columns = row2column(csv_data)
+
+        #align設定
+        col_aligns = ['' for _ in columns] #''はalign無し(デフォルトのalign設定が適用される)
+        if aligns is not None and isinstance(aligns, dict):
+            other_align = aligns.get(None)
+            if other_align:
+                col_aligns = [other_align for _ in columns]
+
+            col_aligns = [aligns.get(col_idx) if aligns.get(col_idx) is not None else col_align 
+                          for col_idx, col_align in enumerate(col_aligns)]
+            #print(f'col_aligns: {col_aligns}(カスタム化)') ###
+
+        #width設定
+        col_max_widths = _max_widths(columns, grouping_opt=self.grouping_opt, precision=self.precision) #各列の最大文字列幅
+        #print(f'col_max_widths: {col_max_widths}') ###
+        #print(f'widths: {widths}') ###
+        if widths is not None and isinstance(widths, dict):
+            other_width = widths.get(None)
+            if other_width:
+                c_widths = defaultdict(lambda:other_width)
+            else:
+                c_widths = defaultdict(lambda:0)
+            c_widths.update(widths)
+            col_max_widths = [c_widths[col_idx] if c_widths[col_idx] > col_max_width else col_max_width 
+                              for col_idx, col_max_width in enumerate(col_max_widths)]
+            #print(f'col_max_widths: {col_max_widths}(カスタム化)') ###
+
+        #ヘッダーalign設定
+        h_aligns = col_aligns[:] #初期設定はcol_aligns
+        if header_aligns is not None and isinstance(header_aligns, dict):
+            other_header_align = header_aligns.get(None)
+            if other_header_align:
+                h_aligns = [other_header_align for _ in h_aligns]
+
+            h_aligns = [header_aligns.get(col_idx) if header_aligns.get(col_idx) is not None else h_align
+                        for col_idx, h_align in enumerate(h_aligns)]
+        #print(f'h_aligns: {h_aligns}') ###
+
+        def get_format(row_idx, col_idx, field):
+            #align
+            if row_idx == self.header_idx: #ヘッダー
+                align = h_aligns[col_idx]
+            else:
+                align = col_aligns[col_idx]
+
+            #width
+            width = col_max_widths[col_idx] - _count_em(str(field))
+            if width <= 0:
+                #fieldが空だとwidthがゼロになるが、
+                #書式指定文字列の指定でalignが空('')で、かつ、widthがゼロだとValueErrorとなる
+                #そのためwidthがゼロの場合は空('')を返す
+                width = ''
+
+            #数字の区切り文字
+            grouping_option = ''
+            if self.grouping_opt:
+                if isinstance(field, str):
+                    pass
+                elif isinstance(field, int) or isinstance(field, float):
+                    grouping_option = '_' #アンダースコア以外にカンマも設定可能だがcsvの区切り文字と同じなのでカンマは使用しない
+
+            #精度
+            dot_precision_type = ''
+            if isinstance(field, float):
+                dot_precision_type = f'.{precision}f'
+
+            return f'{align}{width}{grouping_option}{dot_precision_type}'
+
+        def get_data(field):
+            if isinstance(field, str) or isinstance(field, int) or isinstance(field, float):
+                return field
+            else:
+                return str(field)
+
+        csv_str = '\n'.join([self._display_delimiter.join(
+                                [f'{get_data(col_data):{get_format(row_idx, col_idx, col_data)}}'
+                                for col_idx, col_data in enumerate(row_data)])
+                                for row_idx, row_data in enumerate(csv_data)])
+
+        if remain_toplines_num:
+            csv_str = f'↑(There are {remain_toplines_num} rows)\n' + csv_str
+        if remain_bottomlines_num:
+            csv_str += f'\n↓(There are {remain_bottomlines_num} rows)'
+
+        return csv_str
+
     #------------------------------
     # 保存
     #------------------------------
@@ -1749,27 +1862,18 @@ class csv(object):
         """
         csvデータのヘッダーの中にvalueがあればそのインデックスを返す
             self.get_header().index(value, start, stop)の結果を返す
-            エラーの場合はNoneを返す
         """
         args = [arg for arg in [value, start, stop] if arg is not None]
-
-        try:
-            idx = self.get_header().index(*args)
-            return idx
-        except (ValueError, TypeError):
-            return None
+        idx = self.get_header().index(*args)
+        return idx
 
     def get_header_value(self, idx):
         """
         csvデータのヘッダーにインデックスでアクセスしてその値を返す
             self.get_header()[idx]の結果を返す
-            エラーの場合はNoneを返す
         """
-        try:
-            header = self.get_header()[idx]
-            return header
-        except (IndexError, TypeError):
-            return None
+        header = self.get_header()[idx]
+        return header
 
     #------------------------------
     # フィールド確認
@@ -1842,13 +1946,9 @@ class csv(object):
     def get_field_value(self, row_idx, col_idx):
         """
         csvデータにインデックスでアクセスしてその値を返す
-            エラーの場合はNoneを返す
         """
-        try:
-            value = self.csv[row_idx][col_idx]
-            return value
-        except (IndexError, TypeError):
-            return None
+        value = self.csv[row_idx][col_idx]
+        return value
 
     def inquire_field_value(self, row_value, col_value):
         """
@@ -2295,15 +2395,11 @@ class csv(object):
         self.csvを枠で囲んだcsvインスタンスを返す
             ・border_pattern: 枠パターン(border_patternsの中から選択)
 
-            ・header_aligns: alignの文字を設定するとヘッダー全体がそのalign設定になる
-                                    辞書で個別に設定も可能{列インデックス: align} (align: 左詰め='<'、右詰め='>', 中央寄せ='^')
-                                    (カスタムしたい列の情報だけを辞書に含めること)
-
-            ・aligns: 書式指定文字列のalign設定をカスタマイズする辞書{列インデックス: align} (align: 左詰め='<'、右詰め='>', 中央寄せ='^')
-                             (カスタムしたい列の情報だけを辞書に含めること)
-
-            ・widths: 書式指定文字列のwidth設定をカスタマイズする辞書{列インデックス: width}
-                             (カスタムしたい列の情報だけを辞書に含めること)
+            各列の書式指定を個別に指定できる:
+                ・header_aligns: ヘッダーのalignを設定する辞書{列インデックス: align} (align: 左詰め='<'、右詰め='>', 中央寄せ='^')
+                ・aligns: 各列のalignを設定する辞書{列インデックス: align} (align: 左詰め='<'、右詰め='>', 中央寄せ='^')
+                ・widths: 各列のwidthを設定する辞書{列インデックス: width}
+            ※列インデックスで指定されていない他の全ての設定をNoneキーで設定できる
         """
         #枠パターン取得
         if border_pattern is None:
@@ -2403,7 +2499,11 @@ class csv(object):
         col_max_widths = _max_widths(columns, grouping_opt=self.grouping_opt, precision=self.precision)
         #print(f'col_max_widths: {col_max_widths}') ###
         if widths is not None and isinstance(widths, dict):
-            c_widths = defaultdict(lambda:0)
+            other_width = widths.get(None)
+            if other_width:
+                c_widths = defaultdict(lambda:other_width)
+            else:
+                c_widths = defaultdict(lambda:0)
             c_widths.update(widths)
             col_max_widths = [c_widths[col_idx] if c_widths[col_idx] > col_max_width else col_max_width
                               for col_idx, col_max_width in enumerate(col_max_widths)] #widthsを取り込む(大きい値を採用)
@@ -2411,8 +2511,11 @@ class csv(object):
         col_max_widths = [width if width%2 == 0 else width+1 for width in col_max_widths] #文字幅2のフィールド値や枠にも対応できるようにwidthを偶数にする
         #print(f'col_max_widths: {col_max_widths}') ###
         widths = dict([(i, w) for i,w in enumerate(col_max_widths)])
-        s = _uniform_width(d_csv.csv, field_delimiter=',', header_aligns=header_aligns, aligns=aligns, widths=widths, grouping_opt=self.grouping_opt, precision=self.precision)
-        d_csv = csv([[field for field in row.split(',')] for row in s.split('\n')]) #csvデータ化(alignとwidth情報を消さないように各フィールドはstripしない)
+
+        string_delimiter = ',' #行列データを文字列化して、その後フィード値を取り出すためのデリミタ
+        d_csv._display_delimiter = string_delimiter
+        s = d_csv._csv_string_format(header_aligns=header_aligns, aligns=aligns, widths=widths)
+        d_csv = csv([[field for field in row.split(string_delimiter)] for row in s.split('\n')]) #csvデータ化(alignとwidth情報を消さないように各フィールドはstripしない)
         #d_csv.print() ###
 
         #p_csvにd_csvの値を入れる
@@ -2501,117 +2604,6 @@ def _file_obj2csv(fileObj):
     csv_data = [[field.strip() for field in row.split(',')] for row in fileObj] #フィールドをカンマで区切り、各フィールドをstrip()
     csv_data = _str_field2int_or_float(csv_data) #intに変換できる文字列はintに、floatに変換できる文字列はfloatに変換
     return csv(csv_data)
-
-def _uniform_width(csv_data, row_start_idx=0, row_end_idx=None, field_delimiter=', ', header_aligns=None, aligns=None, widths=None, grouping_opt=False, precision=6):
-    """
-    csv_dataの行列文字列を返す
-        各列の文字列幅を均一にする(全角文字が混じっていてもズレません)
-        csv_dataの行範囲[row_start_idx:row_end_idx]を指定可能
-
-        ・field_delimiter: フィールドの区切り文字の設定
-
-        ・header_aligns: alignの文字を設定するとヘッダー全体がそのalign設定になる
-                                辞書で個別に設定も可能{列インデックス: align} (align: 左詰め='<'、右詰め='>', 中央寄せ='^')
-                                (カスタムしたい列の情報だけを辞書に含めること)
-
-        ・aligns: 書式指定文字列のalign設定をカスタマイズする辞書{列インデックス: align} (align: 左詰め='<'、右詰め='>', 中央寄せ='^')
-                         (カスタムしたい列の情報だけを辞書に含めること)
-
-        ・widths: 書式指定文字列のwidth設定をカスタマイズする辞書{列インデックス: width}
-                         (カスタムしたい列の情報だけを辞書に含めること)
-
-        ・grouping_opt: 数字の区切り文字アンダースコアの有無
-
-        ・precision: floatの精度
-    """
-    row_len = len(csv_data)
-    if row_start_idx is not None:
-        remain_toplines_num = len(csv_data[:row_start_idx])
-    else:
-        remain_toplines_num = 0
-
-    if row_end_idx is not None:
-        remain_bottomlines_num = len(csv_data[row_end_idx:])
-    else:
-        remain_bottomlines_num = 0
-
-    csv_data = csv_data[row_start_idx:row_end_idx]
-    columns = row2column(csv_data)
-
-    #align設定
-    col_aligns = ['' for _ in columns] #''はalign無し(デフォルトのalign設定が適用される)
-    if aligns is not None and isinstance(aligns, dict):
-        col_aligns = [aligns.get(col_idx) if aligns.get(col_idx) is not None else col_align 
-                      for col_idx, col_align in enumerate(col_aligns)]
-        #print(f'col_aligns: {col_aligns}(カスタム化)') ###
-
-    #width設定
-    col_max_widths = _max_widths(columns, grouping_opt=grouping_opt, precision=precision) #各列の最大文字列幅
-    #print(f'col_max_widths: {col_max_widths}') ###
-    #print(f'widths: {widths}') ###
-    if widths is not None and isinstance(widths, dict):
-        c_widths = defaultdict(lambda:0)
-        c_widths.update(widths)
-        col_max_widths = [c_widths[col_idx] if c_widths[col_idx] > col_max_width else col_max_width 
-                          for col_idx, col_max_width in enumerate(col_max_widths)]
-        #print(f'col_max_widths: {col_max_widths}(カスタム化)') ###
-
-    #ヘッダーalign設定
-    h_aligns = col_aligns[:] #初期設定はcol_aligns
-    if header_aligns is not None and isinstance(header_aligns, dict):
-        h_aligns = [header_aligns.get(col_idx) if header_aligns.get(col_idx) is not None else h_align
-                    for col_idx, h_align in enumerate(h_aligns)]
-    if isinstance(header_aligns, str):
-        h_aligns = [header_aligns for _ in col_aligns]
-    #print(f'h_aligns: {h_aligns}') ###
-
-    def get_format(row_idx, col_idx, field):
-        #align
-        if row_idx == 0: #ヘッダー
-            align = h_aligns[col_idx]
-        else:
-            align = col_aligns[col_idx]
-
-        #width
-        width = col_max_widths[col_idx] - _count_em(str(field))
-        if width <= 0:
-            #fieldが空だとwidthがゼロになるが、
-            #書式指定文字列の指定でalignが空('')で、かつ、widthがゼロだとValueErrorとなる
-            #そのためwidthがゼロの場合は空('')を返す
-            width = ''
-
-        #数字の区切り文字
-        grouping_option = ''
-        if grouping_opt:
-            if isinstance(field, str):
-                pass
-            elif isinstance(field, int) or isinstance(field, float):
-                grouping_option = '_' #アンダースコア以外にカンマも設定可能だがcsvの区切り文字と同じなのでカンマは使用しない
-
-        #精度
-        dot_precision_type = ''
-        if isinstance(field, float):
-            dot_precision_type = f'.{precision}f'
-
-        return f'{align}{width}{grouping_option}{dot_precision_type}'
-
-    def get_data(field):
-        if isinstance(field, str) or isinstance(field, int) or isinstance(field, float):
-            return field
-        else:
-            return str(field)
-
-    csv_str = '\n'.join([field_delimiter.join(
-                            [f'{get_data(col_data):{get_format(row_idx, col_idx, col_data)}}'
-                            for col_idx, col_data in enumerate(row_data)])
-                            for row_idx, row_data in enumerate(csv_data)])
-
-    if remain_toplines_num:
-        csv_str = f'↑(There are {remain_toplines_num} rows)\n' + csv_str
-    if remain_bottomlines_num:
-        csv_str += f'\n↓(There are {remain_bottomlines_num} rows)'
-
-    return csv_str
 
 #文字幅関係------------------------------
 def _max_widths(columns, grouping_opt=False, precision=6):
