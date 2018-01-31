@@ -241,12 +241,11 @@
 #       #printメソッドでデータを確認しヘッダーとデータ範囲を設定する
 #       #ヘッダーとデータ範囲を設定すると編集や集計操作が簡単にできるようになる
 #       #
-#       #   heaer_idxプロパティにヘッダーのインデックスを設定する
-#       #   data_row_rangeプロパティにヘッダー＆フッターを含まないデータ範囲をsliceで指定する
+#       #   header_idxプロパティにヘッダーのインデックスを設定する
+#       #   data_row_rangeプロパティにヘッダー＆フッターを含まないデータ範囲をsliceで設定する
 #       #
-#       >>> c.header_idx #ヘッダーはインデックス0の行なので初期値のままでOK
-#       0
-#       >>> c.data_row_range = slice(1, None) #データ範囲を指定
+#       >>> c.header_idx = 0 #ヘッダーのインデックスを設定
+#       >>> c.data_row_range = slice(1, None) #データ範囲を設定
 #       >>>
 #       >>> c.get_header()
 #       ['Name', 'Strength', 'Buttle Power', 'Birthdate', 'Sex', 'Race', 'Height(cm)', 'Weight(kg)']
@@ -576,7 +575,8 @@
 #       Michael\\nEdward\\nPalin, 1943, Actor\\nwriter\\ntelevision\\npresenter\\ncomedian
 #       """)
 #       >>> 
-#       >>> z.data_row_range = slice(1, None) #データ範囲を指定(インデックス0の行はヘッダー)
+#       >>> z.header_idx = 0 #ヘッダーのインデックスを設定
+#       >>> z.data_row_range = slice(1, None) #データ範囲を設定
 #       >>> z.trim() #空の行、空の列を削除
 #       >>> z.print2()
 #       +--------+------+------------+
@@ -812,7 +812,8 @@
 #       +--------+------------+------------+------------+------+----------+----------+----------+
 #       
 #       
-#       #データ範囲を指定(インデックス0の行はヘッダー)
+#       #ヘッダーのインデックスとデータ範囲を設定
+#       >>> c.header_idx = 0
 #       >>> c.data_row_range = slice(1, None)
 #       
 #       
@@ -1131,6 +1132,7 @@
 #       #    メモ帳だと外部からの更新を検出できないため閉じてから開きなおす必要がある)
 #       #
 #       >>> c = csv.load('sample.csv', encoding='utf8')
+#       >>> c.header_idx = 0
 #       >>> c.data_row_range = slice(1, None)
 #       >>> c.set_print_file('_tmp.html', encoding='utf8') #拡張子がhtmlなので、Windowsの場合は既定ブラウザが起動してファイルが開く
 #       >>> c.print2() #出力は設定したファイル(_tmp.html)に上書き保存されるのでブラウザを更新すれば新しいデータがすぐに見れる
@@ -1161,7 +1163,7 @@
 __all__ = ['csv', 'print_contextmanager', 'wrapper', #class
            'load', 'str2csv', 'list2csv', 'dict2csv', 'str2list', 'list2str', 'row2column', 'chk_border', #public function
            ]
-__version__ = '3.1.5'
+__version__ = '3.1.6'
 __author__ = 'ShiraiTK'
 
 from collections import Counter, defaultdict
@@ -1244,7 +1246,10 @@ class print_contextmanager(object):
         """
         @functools.wraps(print_contextmanager.aggregate)
         def contextmanager_func(csv_self):
-            csv_self.add_column(None, csv_self.map_rows(func))
+            column = csv_self.map_rows(func)
+            if csv_self.header_idx is not None:
+                column[csv_self.header_idx] = f'{func.__name__}' #ヘッダー位置に情報付加
+            csv_self.add_column(None, column)
             csv_self.csv.append(csv_self.map_columns(func))
             yield
             del(csv_self.csv[-1])
@@ -1259,7 +1264,10 @@ class print_contextmanager(object):
         """
         @functools.wraps(print_contextmanager.aggregate_row)
         def contextmanager_func(csv_self):
-            csv_self.add_column(None, csv_self.map_rows(func))
+            column = csv_self.map_rows(func)
+            if csv_self.header_idx is not None:
+                column[csv_self.header_idx] = f'{func.__name__}' #ヘッダー位置に情報付加
+            csv_self.add_column(None, column)
             yield
             csv_self.del_column(-1)
             print(f'Add aggregate_row: {func.__name__}')
@@ -1286,26 +1294,33 @@ class print_contextmanager(object):
         """
         @functools.wraps(print_contextmanager.aggregate_line)
         def contextmanager_func(csv_self):
-            idx = csv_self[header_field]
-            start = csv_self.data_row_range.start
-            stop = csv_self.data_row_range.stop
-            line = [csv_self.split_multiplelines(field) if isinstance(field, str) and csv_self.multiple_lines else [field]
-                    for field in csv_self.get_column(idx)[start:stop]]
+            if not csv_self._exists_header():
+                yield
+                print(f"Can't add aggregate_line: {func.__name__}({header_field})")
+            else:
+                idx = csv_self[header_field]
+                start = csv_self.data_row_range.start
+                stop = csv_self.data_row_range.stop
+                line = [csv_self.split_multiplelines(field) if isinstance(field, str) and csv_self.multiple_lines else [field]
+                        for field in csv_self.get_column(idx)[start:stop]]
 
-            #追加する列
-            top = ['' for _ in range(len(csv_self.csv[0:start]))]
-            bottom = [] if stop is None else ['' for _ in range(len(csv_self.csv[stop:]))]
-            column = top + [func(field) for field in line] + bottom
-            csv_self.add_column(None, column)
+                #追加する列
+                top = ['' for _ in range(len(csv_self.csv[0:start]))]
+                bottom = [] if stop is None else ['' for _ in range(len(csv_self.csv[stop:]))]
+                column = top + [func(field) for field in line] + bottom
+                column[csv_self.header_idx] = f'{func.__name__}({header_field})' #ヘッダー位置に情報付加
+                csv_self.add_column(None, column)
 
-            #追加する行
-            row = ['' for _ in range(csv_self.shape()[1])]
-            row[idx] = func(list(chain.from_iterable(line)))
-            csv_self.csv.append(row)
-            yield
-            del(csv_self.csv[-1])
-            csv_self.del_column(-1)
-            print(f'Add aggregate_line: {func.__name__}({header_field})')
+                #追加する行
+                row = ['' for _ in range(csv_self.shape()[1])]
+                agg = func(list(chain.from_iterable(line)))
+                row[idx] = agg
+                row[-1] = agg
+                csv_self.csv.append(row)
+                yield
+                del(csv_self.csv[-1])
+                csv_self.del_column(-1)
+                print(f'Add aggregate_line: {func.__name__}({header_field})')
         return contextmanager_func
 
 #------------------------------
@@ -1384,7 +1399,7 @@ class wrapper(object):
 # csvクラス
 #------------------------------
 class csv(object):
-    _DEFAULT_HEADER_IDX = 0
+    _DEFAULT_HEADER_IDX = None
     _DEFAULT_DATA_ROW_RANGE = slice(0, None)
     _DEFAULT_PRINT2_BORDER = 'Standard'
     _DEFAULT_PRINT_IDX2_BORDER = 'Index'
@@ -1421,7 +1436,7 @@ class csv(object):
         プロパティをデフォルト値に戻す
         """
         self.header_idx = csv._DEFAULT_HEADER_IDX #ヘッダーのインデックス
-        self.data_row_range = csv._DEFAULT_DATA_ROW_RANGE #csvデータでヘッダー＆フッターを含まないデータ範囲(sliceで指定)
+        self.data_row_range = csv._DEFAULT_DATA_ROW_RANGE #csvデータでヘッダー＆フッターを含まないデータ範囲(sliceで設定)
         self.print2_border = csv._DEFAULT_PRINT2_BORDER #print2メソッドで使用するborder_pattern
         self.print_idx2_border = csv._DEFAULT_PRINT_IDX2_BORDER #print_idx2メソッドで使用するborder_pattern
         self.border_grouping = csv._DEFAULT_BORDER_GROUPING #Trueにすると枠のグループ化機能が有効になる
@@ -1860,24 +1875,34 @@ class csv(object):
         """
         csvデータのヘッダーを返す
         """
-        return self.csv[self.header_idx]
+        if self._exists_header():
+            return self.csv[self.header_idx]
 
     def get_header_idx(self, value, start=None, stop=None):
         """
         csvデータのヘッダーの中にvalueがあればそのインデックスを返す
             self.get_header().index(value, start, stop)の結果を返す
         """
-        args = [arg for arg in [value, start, stop] if arg is not None]
-        idx = self.get_header().index(*args)
-        return idx
+        if self._exists_header():
+            args = [arg for arg in [value, start, stop] if arg is not None]
+            idx = self.get_header().index(*args)
+            return idx
 
     def get_header_value(self, idx):
         """
         csvデータのヘッダーにインデックスでアクセスしてその値を返す
             self.get_header()[idx]の結果を返す
         """
-        header = self.get_header()[idx]
-        return header
+        if self._exists_header():
+            header = self.get_header()[idx]
+            return header
+
+    def _exists_header(self):
+        if self.header_idx is None:
+            print('header_idx property is None')
+            return False
+        else:
+            return True
 
     #------------------------------
     # フィールド確認
