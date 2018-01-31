@@ -999,7 +999,7 @@
 #       +--+--+--+--+  +--+
 #       | 5| 8| 9| 8| 5|35|
 #       +--+--+--+--+--+--+
-#       Add aggregate
+#       Add aggregate: sum
 #       >>> n.csv
 #       [[1, 0, 0, 0, 0], [1, 2, 0, 0, 0], [1, 2, 3, 0, 0], [1, 2, 3, 4, 0], [1, 2, 3, 4, 5]] #データは元のまま
 #       >>>
@@ -1021,7 +1021,7 @@
 #       +--+--+--+--+  +
 #       | 5| 8| 9| 8| 5|
 #       +--+--+--+--+--+
-#       Add aggregate_col
+#       Add aggregate_col: sum
 #       >>> n.csv
 #       [[1, 0, 0, 0, 0], [1, 2, 0, 0, 0], [1, 2, 3, 0, 0], [1, 2, 3, 4, 0], [1, 2, 3, 4, 5]] #データは元のまま
 #       >>>
@@ -1040,7 +1040,7 @@
 #       +--+--+--+  +--+
 #       | 3| 6  6| 4| 0|
 #       +--+--+--+--+--+
-#       Add aggregate_col
+#       Add aggregate_col: sum
 #       >>>
 #       >>> n.print_contextmanager = None #Noneで無効化
 #       >>> n.print2()
@@ -1093,7 +1093,7 @@
 #       +--+--+--+--+--+--+
 #       | 5|              |
 #       +--+--+--+--+--+--+
-#       Add aggregate
+#       Add aggregate: sum
 #
 #
 #       #csv.wrapper.args_of_numで集計関数sumをラップして数字だけが渡るようにする
@@ -1113,7 +1113,7 @@
 #       +--+--+--+--+  +--+
 #       | 5| 8| 9| 8| 5|35|
 #       +--+--+--+--+--+--+
-#       Add aggregate
+#       Add aggregate: sum
 #       
 #       
 #----------------------------------------------------------------------------------------------------
@@ -1161,7 +1161,7 @@
 __all__ = ['csv', 'print_contextmanager', 'wrapper', #class
            'load', 'str2csv', 'list2csv', 'dict2csv', 'str2list', 'list2str', 'row2column', 'chk_border', #public function
            ]
-__version__ = '3.1.4'
+__version__ = '3.1.5'
 __author__ = 'ShiraiTK'
 
 from collections import Counter, defaultdict
@@ -1249,7 +1249,7 @@ class print_contextmanager(object):
             yield
             del(csv_self.csv[-1])
             csv_self.del_column(-1)
-            print('Add aggregate')
+            print(f'Add aggregate: {func.__name__}')
         return contextmanager_func
 
     @staticmethod
@@ -1262,7 +1262,7 @@ class print_contextmanager(object):
             csv_self.add_column(None, csv_self.map_rows(func))
             yield
             csv_self.del_column(-1)
-            print('Add aggregate_row')
+            print(f'Add aggregate_row: {func.__name__}')
         return contextmanager_func
 
     @staticmethod
@@ -1275,7 +1275,7 @@ class print_contextmanager(object):
             csv_self.csv.append(csv_self.map_columns(func))
             yield
             del(csv_self.csv[-1])
-            print('Add aggregate_col')
+            print(f'Add aggregate_col: {func.__name__}')
         return contextmanager_func
 
     @staticmethod
@@ -1305,7 +1305,7 @@ class print_contextmanager(object):
             yield
             del(csv_self.csv[-1])
             csv_self.del_column(-1)
-            print(f'Add aggregate_line: {header_field}')
+            print(f'Add aggregate_line: {func.__name__}({header_field})')
         return contextmanager_func
 
 #------------------------------
@@ -1318,6 +1318,7 @@ class wrapper(object):
         func関数のエラーを吸収するラッパー関数を返す
             err_value: エラーの場合に返す値
         """
+        @functools.wraps(func)
         def wrapper_func(*args, **kwargs):
             try:
                 ret = func(*args, **kwargs)
@@ -1331,6 +1332,7 @@ class wrapper(object):
         """
         funcの引数であるリストの構成要素のうち数字の要素だけを取り出し、これを引数としてfuncで実行するラッパー関数を返す
         """
+        @functools.wraps(func)
         def wrapper_func(lst):
             if isinstance(lst, list) or isinstance(lst, tuple):
                 num_lst = [i for i in lst if isinstance(i, int) or isinstance(i, float)] #数字以外は除外
@@ -1344,6 +1346,7 @@ class wrapper(object):
         """
         funcの引数であるリストの構成要素のうち文字列の要素だけを取り出し、これを引数としてfuncで実行するラッパー関数を返す
         """
+        @functools.wraps(func)
         def wrapper_func(lst):
             if isinstance(lst, list) or isinstance(lst, tuple):
                 num_lst = [i for i in lst if isinstance(i, str)] #文字列以外は除外
@@ -1358,6 +1361,7 @@ class wrapper(object):
         multiple-linesのフィールドが含まれていればそれを展開し、これを引数としてfuncで実行するラッパー関数を返す
             ['hoge\\nfuga\\n123', 4, 5] -> ['hoge', 'fuga', 123, 4, 5]
         """
+        @functools.wraps(func)
         def wrapper_func(lst):
             if isinstance(lst, list) or isinstance(lst, tuple):
                 pass
@@ -1775,7 +1779,7 @@ class csv(object):
             #精度
             dot_precision_type = ''
             if isinstance(field, float):
-                dot_precision_type = f'.{precision}f'
+                dot_precision_type = f'.{self.precision}f'
 
             return f'{align}{width}{grouping_option}{dot_precision_type}'
 
