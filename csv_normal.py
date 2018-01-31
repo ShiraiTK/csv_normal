@@ -579,60 +579,60 @@
 #       >>> z.data_row_range = slice(1, None) #データ範囲を指定(インデックス0の行はヘッダー)
 #       >>> z.trim() #空の行、空の列を削除
 #       >>> z.print2()
-#       +--------+----+------------+
-#       |Name    |Born|Occupation  |
-#       +--------+----+------------+
-#       |Graham  |1941|Comedian    |
-#       |Arthur  |    |writer      |
-#       |Chapman |    |actor       |
-#       +--------+----+------------+
-#       |John    |1939|Actor       |
-#       |Marwood |    |voice actor |
-#       |Cleese  |    |comedian    |
-#       |        |    |screenwriter|
-#       |        |    |producer    |
-#       +--------+----+------------+
-#       |Michael |1943|Actor       |
-#       |Edward  |    |writer      |
-#       |Palin   |    |television  |
-#       |        |    |presenter   |
-#       |        |    |comedian    |
-#       +--------+----+------------+
+#       +--------+------+------------+
+#       |Name    |Born  |Occupation  |
+#       +--------+------+------------+
+#       |Graham  | 1_941|Comedian    |
+#       |Arthur  |      |writer      |
+#       |Chapman |      |actor       |
+#       +--------+------+------------+
+#       |John    | 1_939|Actor       |
+#       |Marwood |      |voice actor |
+#       |Cleese  |      |comedian    |
+#       |        |      |screenwriter|
+#       |        |      |producer    |
+#       +--------+------+------------+
+#       |Michael | 1_943|Actor       |
+#       |Edward  |      |writer      |
+#       |Palin   |      |television  |
+#       |        |      |presenter   |
+#       |        |      |comedian    |
+#       +--------+------+------------+
 #       >>> 
 #       >>> z.print_idx2()
-#         index:0       :1   :2           :index  
-#        ......+--------+----+------------+...... 
-#             0|Name    |Born|Occupation  |0      
-#        ......+--------+----+------------+...... 
-#             1|Graham  |1941|Comedian    |1      
-#              |Arthur  |    |writer      |       
-#              |Chapman |    |actor       |       
-#        ......+--------+----+------------+...... 
-#             2|John    |1939|Actor       |2      
-#              |Marwood |    |voice actor |       
-#              |Cleese  |    |comedian    |       
-#              |        |    |screenwriter|       
-#              |        |    |producer    |       
-#        ......+--------+----+------------+...... 
-#             3|Michael |1943|Actor       |3      
-#              |Edward  |    |writer      |       
-#              |Palin   |    |television  |       
-#              |        |    |presenter   |       
-#              |        |    |comedian    |       
-#        ......+--------+----+------------+...... 
-#         index:0       :1   :2           :index  
+#         index:0       :1     :2           :index  
+#        ......+--------+------+------------+...... 
+#             0|Name    |Born  |Occupation  |0      
+#        ......+--------+------+------------+...... 
+#             1|Graham  | 1_941|Comedian    |1      
+#              |Arthur  |      |writer      |       
+#              |Chapman |      |actor       |       
+#        ......+--------+------+------------+...... 
+#             2|John    | 1_939|Actor       |2      
+#              |Marwood |      |voice actor |       
+#              |Cleese  |      |comedian    |       
+#              |        |      |screenwriter|       
+#              |        |      |producer    |       
+#        ......+--------+------+------------+...... 
+#             3|Michael | 1_943|Actor       |3      
+#              |Edward  |      |writer      |       
+#              |Palin   |      |television  |       
+#              |        |      |presenter   |       
+#              |        |      |comedian    |       
+#        ......+--------+------+------------+...... 
+#         index:0       :1     :2           :index
 #       >>>
 #       >>> z.multiple_lines = False #multiple_linesプロパティでmultiple-lines表示を切り替えられる
 #       >>> z.print2()
-#       +------------------------+----+----------------------------------------------------+
-#       |Name                    |Born|Occupation                                          |
-#       +------------------------+----+----------------------------------------------------+
-#       |Graham\nArthur\nChapman |1941|Comedian\nwriter\nactor                             |
-#       +------------------------+----+----------------------------------------------------+
-#       |John\nMarwood\nCleese   |1939|Actor\nvoice actor\ncomedian\nscreenwriter\nproducer|
-#       +------------------------+----+----------------------------------------------------+
-#       |Michael\nEdward\nPalin  |1943|Actor\nwriter\ntelevision\npresenter\ncomedian      |
-#       +------------------------+----+----------------------------------------------------+
+#       +------------------------+------+----------------------------------------------------+
+#       |Name                    |Born  |Occupation                                          |
+#       +------------------------+------+----------------------------------------------------+
+#       |Graham\nArthur\nChapman | 1_941|Comedian\nwriter\nactor                             |
+#       +------------------------+------+----------------------------------------------------+
+#       |John\nMarwood\nCleese   | 1_939|Actor\nvoice actor\ncomedian\nscreenwriter\nproducer|
+#       +------------------------+------+----------------------------------------------------+
+#       |Michael\nEdward\nPalin  | 1_943|Actor\nwriter\ntelevision\npresenter\ncomedian      |
+#       +------------------------+------+----------------------------------------------------+
 #       
 #       
 #       >>> t = csv.str2csv("""
