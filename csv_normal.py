@@ -1513,7 +1513,7 @@ class csv(object):
         else:
             csv = self
 
-        return self._csv_string_format(row_start_idx=row_start_idx, row_end_idx=row_end_idx, header_aligns=header_aligns, aligns=aligns, widths=widths)
+        return csv._csv_string_format(row_start_idx=row_start_idx, row_end_idx=row_end_idx, header_aligns=header_aligns, aligns=aligns, widths=widths)
 
     @add_print_contextmanager
     def print(self, head=None, tail=None):
