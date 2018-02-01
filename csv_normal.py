@@ -855,8 +855,7 @@
 #       
 #       
 #       #男女別の身長と体重の平均値
-#       >>> from statistics import mean, median, variance, stdev #平均: mean, 中央値: median, 分散: variance, 標準偏差: stdev
-#       >>> c.groupby(c['Sex'], (c['Height(cm)'], c['Weight(kg)']), func=mean).print2()
+#       >>> c.groupby(c['Sex'], (c['Height(cm)'], c['Weight(kg)']), func=csv.mean).print2()
 #       +------+----------+----------+
 #       |Sex   |Height(cm)|Weight(kg)|
 #       +------+----------+----------+
@@ -938,6 +937,33 @@
 #       +------+----------+--------+------+
 #       |Male  |         2|       1|     2|
 #       +------+----------+--------+------+
+#       
+#       
+#       #各列のデータ数、最大値、最小値、合計、平均、中央値、分散、標準偏差などを一度に確認できる
+#       #
+#       #   数字データのみが計算対象となり文字列は無視されるので、
+#       #   文字列データだけで構成された列の計算結果は空白やゼロになる
+#       #
+#       >>> c.describe().print2()
+#       +--------+----+--------+--------------------+----------+----+----+----------+----------+
+#       |        |Name|Strength|Buttle Power        |Birthdate |Sex |Race|Height(cm)|Weight(kg)|
+#       +--------+----+--------+--------------------+----------+----+----+----------+----------+
+#       |len     |   0        0|                   6|         0    0    0|         6          6|
+#       +--------+----+--------+--------------------+----------+----+----+----------+----------+
+#       |max     |             |           3_000_000|                    |       226|       116|
+#       +--------+    +        +--------------------+          +    +    +----------+----------+
+#       |min     |             |                   3|                    |       153|        45|
+#       +--------+----+--------+--------------------+----------+----+----+----------+----------+
+#       |sum     |   0        0|           6_076_483|         0    0    0|     1_066|       396|
+#       +--------+----+--------+--------------------+----------+----+----+----------+----------+
+#       |mean    |             |        1_012_747.17|                    |    177.67|        66|
+#       +--------+    +        +--------------------+          +    +    +----------+----------+
+#       |median  |             |          537_500.00|                    |    170.00|     59.00|
+#       +--------+    +        +--------------------+          +    +    +----------+----------+
+#       |variance|             |1_570_337_249_772.17|                    |    665.47|       670|
+#       +--------+    +        +--------------------+          +    +    +----------+----------+
+#       |stdev   |             |        1_253_130.98|                    |     25.80|     25.88|
+#       +--------+----+--------+--------------------+----------+----+----+----------+----------+
 #       
 #       
 #----------------------------------------------------------------------------------------------------
@@ -1163,12 +1189,13 @@
 __all__ = ['csv', 'print_contextmanager', 'wrapper', #class
            'load', 'str2csv', 'list2csv', 'dict2csv', 'str2list', 'list2str', 'row2column', 'chk_border', #public function
            ]
-__version__ = '3.1.6'
+__version__ = '3.1.7'
 __author__ = 'ShiraiTK'
 
 from collections import Counter, defaultdict
 from contextlib import contextmanager
 from itertools import chain, product, zip_longest
+from statistics import mean, median, variance, stdev #平均: mean, 中央値: median, 分散: variance, 標準偏差: stdev
 import copy
 import functools
 import inspect
@@ -1399,6 +1426,7 @@ class wrapper(object):
 # csvクラス
 #------------------------------
 class csv(object):
+    _DEFAULT_NAME = ''
     _DEFAULT_HEADER_IDX = None
     _DEFAULT_DATA_ROW_RANGE = slice(0, None)
     _DEFAULT_PRINT2_BORDER = 'Standard'
@@ -1435,6 +1463,7 @@ class csv(object):
         """
         プロパティをデフォルト値に戻す
         """
+        self.name = csv._DEFAULT_NAME #csvデータの名前
         self.header_idx = csv._DEFAULT_HEADER_IDX #ヘッダーのインデックス
         self.data_row_range = csv._DEFAULT_DATA_ROW_RANGE #csvデータでヘッダー＆フッターを含まないデータ範囲(sliceで設定)
         self.print2_border = csv._DEFAULT_PRINT2_BORDER #print2メソッドで使用するborder_pattern
@@ -1456,6 +1485,7 @@ class csv(object):
         src.csv以外のプロパティをsrcからコピーする
             filterメソッドやmapメソッドなど、処理結果を新しいcsvインスタンスとして返すメソッドで使用する
         """
+        self.name = src.name
         self.header_idx = src.header_idx
         self.data_row_range = src.data_row_range
         self.print2_border = src.print2_border
@@ -2344,7 +2374,7 @@ class csv(object):
     @set_row_range
     def groupby(self, grouping_col_idxs, target_col_idxs=None, func=None, row_start_idx=0, row_end_idx=None):
         """
-        選択した列のフィールド値でグループ化し集計したcsvデータを返す
+        選択した列のフィールド値でグループ化し集計したcsvインスタンスを返す
             grouping_col_idxs: グループ化対象の列
             target_col_idxs: 集計対象の列(Noneならgrouping_col_idxs以外の全ての列)
             func: 集計関数(target_col_idxsを集計する関数)
@@ -2392,7 +2422,7 @@ class csv(object):
     @set_row_range
     def cross_count(self, col_idx1, col_idx2, row_start_idx=0, row_end_idx=None, field_fmt='{count} ({percent}%)'):
         """
-        選択した2列(col_idx1, col_idx2)をクロス集計したcsvデータを返す
+        選択した2列(col_idx1, col_idx2)をクロス集計したcsvインスタンスを返す
         集計内容はカウント数とパーセント値、表示形式はfield_fmtで設定できる
             col_idx1: クロス集計するcsvデータの行(header)となる
             col_idx2: クロス集計するcsvデータの列(左端列)となる
@@ -2413,6 +2443,21 @@ class csv(object):
         new_csv = csv([rows] + [[get_field((row, col)) for row in rows] for col in cols])
         new_csv.add_column(0, [''] + cols) #rowsを追加した分ブランク['']を追加
 
+        new_csv._copy_property(self)
+        return new_csv
+
+    @set_row_range
+    def describe(self, func_lst=(len, max, min, sum, mean, median, variance, stdev), row_start_idx=0, row_end_idx=None):
+        """
+        func_lstに設定した各集計関数で各列を集計したcsvインスタンスを返す
+            集計関数には列データの内、数字のデータのみが渡る
+        """
+        if self.header_idx is None:
+            header = []
+        else:
+            header = [[''] + self.csv[self.header_idx]]
+
+        new_csv = csv(header + [[func.__name__] + self.map_columns(wrapper.args_of_num(func)) for func in func_lst])
         new_csv._copy_property(self)
         return new_csv
 
@@ -2632,7 +2677,9 @@ def _file_obj2csv(fileObj):
     """
     csv_data = [[field.strip() for field in row.split(',')] for row in fileObj] #フィールドをカンマで区切り、各フィールドをstrip()
     csv_data = _str_field2int_or_float(csv_data) #intに変換できる文字列はintに、floatに変換できる文字列はfloatに変換
-    return csv(csv_data)
+    csv_instance = csv(csv_data)
+    csv_instance.name = fileObj.name
+    return csv_instance
 
 #文字幅関係------------------------------
 def _max_widths(columns, grouping_opt=False, precision=6):
