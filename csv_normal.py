@@ -1394,7 +1394,7 @@ class wrapper(object):
     @staticmethod
     def non_error(func, err_value=''):
         """
-        func関数のエラーを吸収するラッパー関数を返す
+        func関数のエラーを吸収するラッパー関数
             err_value: エラーの場合に返す値
         """
         @functools.wraps(func)
