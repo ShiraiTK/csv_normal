@@ -966,6 +966,43 @@
 #       +--------+----+--------+--------------------+----------+----+----+----------+----------+
 #       
 #       
+#       #グループ化したデータ(multiple-lines)の処理も可能
+#       #
+#       #   cal_columnsやmap_fieldメソッドなどはmultiple-linesの処理をサポートしている
+#       #
+#       >>> g = c.groupby(c['Sex'])
+#       >>> g.print2()
+#       +------+--------+------------+------------+------------+----------+----------+----------+
+#       |Sex   |Name    |Strength    |Buttle Power|Birthdate   |Race      |Height(cm)|Weight(kg)|
+#       +------+--------+------------+------------+------------+----------+----------+----------+
+#       |Male  |Goku    |very strong |   3_000_000|Age-737-year|Saiyan    |       175|        62|
+#       |      |Vegeta  |very strong |   2_000_000|Age-732-year|Saiyan    |       164|        56|
+#       |      |Piccolo |strong      |   1_000_000|Age-753-year|Namekian  |       226|       116|
+#       |      |Krillin |good        |      75_000|Age-736-year|Earthling |       153|        45|
+#       |      |Yamcha  |weak        |       1_480|Age-733-year|Earthling |       183|        68|
+#       +------+--------+------------+------------+------------+----------+----------+----------+
+#       |Female|Bulma   |very weak   |           3|Age-733-year|Earthling |       165|        49|
+#       +------+--------+------------+------------+------------+----------+----------+----------+
+#       >>> 
+#       >>> bmi = g.cal_columns((c['Height(cm)'], c['Weight(kg)']), lambda h,w: int(w/(h/100)/(h/100)))
+#       >>> bmi
+#       ['', '20\\n20\\n22\\n19\\n20', 17]
+#       >>> bmi[0] = 'BMI'
+#       >>> g.add_column(None, bmi)
+#       >>> g.print2()
+#       +------+--------+------------+------------+------------+----------+----------+----------+----+
+#       |Sex   |Name    |Strength    |Buttle Power|Birthdate   |Race      |Height(cm)|Weight(kg)|BMI |
+#       +------+--------+------------+------------+------------+----------+----------+----------+----+
+#       |Male  |Goku    |very strong |   3_000_000|Age-737-year|Saiyan    |       175|        62|  20|
+#       |      |Vegeta  |very strong |   2_000_000|Age-732-year|Saiyan    |       164|        56|  20|
+#       |      |Piccolo |strong      |   1_000_000|Age-753-year|Namekian  |       226|       116|  22|
+#       |      |Krillin |good        |      75_000|Age-736-year|Earthling |       153|        45|  19|
+#       |      |Yamcha  |weak        |       1_480|Age-733-year|Earthling |       183|        68|  20|
+#       +------+--------+------------+------------+------------+----------+----------+----------+----+
+#       |Female|Bulma   |very weak   |           3|Age-733-year|Earthling |       165|        49|  17|
+#       +------+--------+------------+------------+------------+----------+----------+----------+----+
+#       
+#       
 #----------------------------------------------------------------------------------------------------
 #       #print関連のメソッドに前後処理を簡単に追加可能
 #       #
@@ -1123,8 +1160,8 @@
 #       Add aggregate: sum
 #
 #
-#       #csv.wrapper.args_of_numで集計関数sumをラップして数字だけが渡るようにする
-#       >>> sum_nums = csv.wrapper.args_of_num(sum)
+#       #csv.wrapper.arg_of_numlistで集計関数sumをラップして数字だけが渡るようにする
+#       >>> sum_nums = csv.wrapper.arg_of_numlist(sum)
 #       >>> n.print_contextmanager = csv.print_contextmanager.aggregate(sum_nums)
 #       >>> n.print2() #空データが無視されて各行列の合計値を集計できる
 #       +--+--+--+--+--+--+
@@ -1370,38 +1407,41 @@ class wrapper(object):
         return wrapper_func
 
     @staticmethod
-    def args_of_num(func):
+    def arg_of_numlist(func):
         """
-        funcの引数であるリストの構成要素のうち数字の要素だけを取り出し、これを引数としてfuncで実行するラッパー関数を返す
+        引数を加工するラッパー関数
+        iterableの要素から数字要素のみを取り出したリストを引数にする
         """
         @functools.wraps(func)
-        def wrapper_func(lst):
-            if isinstance(lst, list) or isinstance(lst, tuple):
-                num_lst = [i for i in lst if isinstance(i, int) or isinstance(i, float)] #数字以外は除外
+        def wrapper_func(iterable):
+            if hasattr(iterable, '__iter__'):
+                num_lst = [i for i in iterable if isinstance(i, int) or isinstance(i, float)] #数字以外は除外
             else:
-                raise TypeError(f'unsupported {type(lst)}')
+                raise TypeError(f'unsupported {type(iterable)}')
             return func(num_lst)
         return wrapper_func
 
     @staticmethod
-    def args_of_str(func):
+    def arg_of_strlist(func):
         """
-        funcの引数であるリストの構成要素のうち文字列の要素だけを取り出し、これを引数としてfuncで実行するラッパー関数を返す
+        引数を加工するラッパー関数
+        iterableの要素から文字列要素のみを取り出したリストを引数にする
         """
         @functools.wraps(func)
-        def wrapper_func(lst):
-            if isinstance(lst, list) or isinstance(lst, tuple):
-                num_lst = [i for i in lst if isinstance(i, str)] #文字列以外は除外
+        def wrapper_func(iterable):
+            if hasattr(iterable, '__iter__'):
+                num_lst = [i for i in iterable if isinstance(i, str)] #文字列以外は除外
             else:
-                raise TypeError(f'unsupported {type(lst)}')
+                raise TypeError(f'unsupported {type(iterable)}')
             return func(num_lst)
         return wrapper_func
 
     @staticmethod
     def support_multiplelines(func, multiple_lines_delimiter):
         """
-        引数にmultiple-linesのフィールドが含まれていればそれを展開し、これを引数としてfuncで処理した結果を
-        再びmultiple-linesとしてまとめて返すラッパー関数を返す
+        multiple-linesを処理するラッパー関数
+        引数にmultiple-linesのフィールドが含まれていればそれを展開したリストを引数にする
+        funcで処理した結果を再びmultiple-linesに変換して返す
             f = support_multiplelines(lambda x: x*2, '\\n')
             f('1\\n2\\n3') -> '2\\n4\\n6'
         """
@@ -1417,28 +1457,29 @@ class wrapper(object):
         return wrapper_func
 
     @staticmethod
-    def _args_of_flatten_multiplelines(func, multiple_lines_delimiter):
+    def _arg_of_flatten_multiplelines_list(func, multiple_lines_delimiter):
         """
-        multiple-linesのフィールドが含まれていればそれを展開し、これを引数としてfuncで実行するラッパー関数を返す
+        引数を加工するラッパー関数
+        multiple-linesのフィールドが含まれていればそれを展開したリストを引数にする
             ['hoge\\nfuga\\n123', 4, 5] -> ['hoge', 'fuga', 123, 4, 5]
         """
         @functools.wraps(func)
-        def wrapper_func(lst):
-            if isinstance(lst, list) or isinstance(lst, tuple):
+        def wrapper_func(iterable):
+            if hasattr(iterable, '__iter__'):
                 pass
             else:
-                raise TypeError(f'unsupported {type(lst)}')
+                raise TypeError(f'unsupported {type(iterable)}')
 
             #multiple-linesがあるかチェック
-            if any([multiple_lines_delimiter in i for i in [i for i in lst if isinstance(i, str)]]):
+            if any([multiple_lines_delimiter in i for i in [i for i in iterable if isinstance(i, str)]]):
                 new_lst = []
                 [new_lst.extend(i.split(multiple_lines_delimiter))
                     if isinstance(i,str) and multiple_lines_delimiter in i
-                    else new_lst.append(i) for i in lst]
+                    else new_lst.append(i) for i in iterable]
                 new_lst = [_str2int_or_float(i) for i in new_lst]
                 return func(new_lst)
             else:
-                return func(lst)
+                return func(iterable)
         return wrapper_func
 
 #------------------------------
@@ -2334,7 +2375,7 @@ class csv(object):
             funcがエラーになる場合は空文字('')を返す
         """
         if self.multiple_lines:
-            func = wrapper._args_of_flatten_multiplelines(func, self.multiple_lines_delimiter)
+            func = wrapper._arg_of_flatten_multiplelines_list(func, self.multiple_lines_delimiter)
         func = wrapper.non_error(func)
 
         top = ['' for _ in range(len(self.csv[0:row_start_idx]))]
@@ -2348,7 +2389,7 @@ class csv(object):
             funcがエラーになる場合は空文字('')を返す
         """
         if self.multiple_lines:
-            func = wrapper._args_of_flatten_multiplelines(func, self.multiple_lines_delimiter)
+            func = wrapper._arg_of_flatten_multiplelines_list(func, self.multiple_lines_delimiter)
         func = wrapper.non_error(func)
 
         return list(map(func, row2column(self.csv[row_start_idx:row_end_idx])))
@@ -2489,7 +2530,7 @@ class csv(object):
         else:
             header = [[''] + self.csv[self.header_idx]]
 
-        new_csv = csv(header + [[func.__name__] + self.map_columns(wrapper.args_of_num(func)) for func in func_lst])
+        new_csv = csv(header + [[func.__name__] + self.map_columns(wrapper.arg_of_numlist(func)) for func in func_lst])
         new_csv._copy_property(self)
         return new_csv
 
