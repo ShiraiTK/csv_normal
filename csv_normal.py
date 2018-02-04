@@ -674,7 +674,7 @@
 #       
 #
 #----------------------------------------------------------------------------------------------------
-#       #fillメソッド、mapメソッド、research_field、csv2list、counter_columnメソッドの使用例
+#       #fillメソッド、map_fieldメソッド、research_field、csv2list、counter_columnメソッドの使用例
 #       #2次元配列からcsvデータ作成
 #       #
 #       >>> m = csv.csv([[1],[1,2],[1,2,3],[1,2,3,4],[1,2,3],[1,2],[1]])
@@ -701,7 +701,7 @@
 #       
 #       
 #       #インデックス2～5の範囲内の行のフィールド値を2倍にする
-#       >>> m2 = m.map(lambda row: [field*2 for field in row], 2, 5)
+#       >>> m2 = m.map_field(lambda field: field*2, 2, 5)
 #       >>> m2.print()
 #       1, 0, 0, 0
 #       1, 2, 0, 0
@@ -1189,7 +1189,7 @@
 __all__ = ['csv', 'print_contextmanager', 'wrapper', #class
            'load', 'str2csv', 'list2csv', 'dict2csv', 'str2list', 'list2str', 'row2column', 'chk_border', #public function
            ]
-__version__ = '3.1.7'
+__version__ = '3.1.8'
 __author__ = 'ShiraiTK'
 
 from collections import Counter, defaultdict
@@ -1398,6 +1398,25 @@ class wrapper(object):
         return wrapper_func
 
     @staticmethod
+    def support_multiplelines(func, multiple_lines_delimiter):
+        """
+        引数にmultiple-linesのフィールドが含まれていればそれを展開し、これを引数としてfuncで処理した結果を
+        再びmultiple-linesとしてまとめて返すラッパー関数を返す
+            f = support_multiplelines(lambda x: x*2, '\\n')
+            f('1\\n2\\n3') -> '2\\n4\\n6'
+        """
+        @functools.wraps(func)
+        def wrapper_func(*args):
+            #multiple-linesがあるかチェック
+            if all([isinstance(i, str) and multiple_lines_delimiter in i for i in args]):
+                new_args = zip(*[[_str2int_or_float(line) for line in arg.split(multiple_lines_delimiter)] for arg in args])
+                return multiple_lines_delimiter.join([str(func(*new_arg)) for new_arg in new_args])
+            else:
+                return func(*args)
+
+        return wrapper_func
+
+    @staticmethod
     def _args_of_flatten_multiplelines(func, multiple_lines_delimiter):
         """
         multiple-linesのフィールドが含まれていればそれを展開し、これを引数としてfuncで実行するラッパー関数を返す
@@ -1483,7 +1502,7 @@ class csv(object):
     def _copy_property(self, src):
         """
         src.csv以外のプロパティをsrcからコピーする
-            filterメソッドやmapメソッドなど、処理結果を新しいcsvインスタンスとして返すメソッドで使用する
+            filterメソッドやmap_fieldメソッドなど、処理結果を新しいcsvインスタンスとして返すメソッドで使用する
         """
         self.name = src.name
         self.header_idx = src.header_idx
@@ -2067,7 +2086,7 @@ class csv(object):
         各フィールドをre.sub(pattern, repl)したcsvインスタンスを返す
             フィールドは文字列に変換してからre.sub関数で評価される
         """
-        chg_csv = self.map(lambda row: [re.sub(pattern, repl, str(field)) for field in row])
+        chg_csv = self.map_field(lambda field: re.sub(pattern, repl, str(field)))
         chg_csv.refresh_field() #re.subのために各フィールドを文字列に変換したので、元に戻す
         chg_csv._copy_property(self)
         return chg_csv
@@ -2077,7 +2096,7 @@ class csv(object):
         各フィールドをre.search(pattern, field)してヒットしたfield値以外は空('')にしたcsvインスタンスを返す
             フィールドは文字列に変換してからre.search関数で評価される
         """
-        chg_csv = self.map(lambda row: [field if re.search(pattern, str(field)) else '' for field in row])
+        chg_csv = self.map_field(lambda field: field if re.search(pattern, str(field)) else '')
         chg_csv._copy_property(self)
         return chg_csv
 
@@ -2087,6 +2106,12 @@ class csv(object):
         各要素をintやfloatに変換可能ならば変換したリストを返す
         """
         return [_str2int_or_float(field) for field in multiplelines_field.split(self.multiple_lines_delimiter)]
+
+    def join_multiplelines(self, lst):
+        """
+        リストの各フィールド値をデリミタ(self.multiple_lines_delimiter)で結合した文字列を返す
+        """
+        return self.multiple_lines_delimiter.join(map(str, lst))
 
     #------------------------------
     # column操作
@@ -2234,7 +2259,7 @@ class csv(object):
     @set_row_range
     def sort(self, key=None, reverse=False, row_start_idx=0, row_end_idx=None):
         """
-        行範囲[row_start_idx:row_end_idx]をsortする
+        行範囲[row_start_idx:row_end_idx]の各行をsortする
         """
         self.csv = [*self.csv[0:row_start_idx],
                     *sorted(self.csv[row_start_idx:row_end_idx], key=key, reverse=reverse),
@@ -2273,7 +2298,7 @@ class csv(object):
     @set_row_range
     def filter(self, func=None, row_start_idx=0, row_end_idx=None):
         """
-        行範囲[row_start_idx:row_end_idx]をfilterしたcsvインスタンスを返す
+        行範囲[row_start_idx:row_end_idx]の各行をfilterしたcsvインスタンスを返す
         """
         csv_data = [*self.csv[0:row_start_idx],
                     *filter(func, self.csv[row_start_idx:row_end_idx]),
@@ -2284,14 +2309,18 @@ class csv(object):
         return new_csv
 
     @set_row_range
-    def map(self, func=None, row_start_idx=0, row_end_idx=None):
+    def map_field(self, func=None, row_start_idx=0, row_end_idx=None):
         """
-        行範囲[row_start_idx:row_end_idx]をmapしたcsvインスタンスを返す
+        行範囲[row_start_idx:row_end_idx]の各フィールド値をmapしたcsvインスタンスを返す
+            funcの引数には各フィールド値が渡される
             funcがエラーになる場合は空文字('')を返す
         """
+        if self.multiple_lines:
+            func = wrapper.support_multiplelines(func, self.multiple_lines_delimiter)
         func = wrapper.non_error(func) #func処理でエラーなら''を返すラッパー関数
+
         csv_data = [*self.csv[0:row_start_idx],
-                    *map(func, self.csv[row_start_idx:row_end_idx]),
+                    *[list(map(func, row)) for row in self.csv[row_start_idx:row_end_idx]],
                     *([] if row_end_idx is None else self.csv[row_end_idx:])
                     ]
         new_csv = csv(csv_data)
@@ -2331,7 +2360,10 @@ class csv(object):
             各列の同じ行の値がfuncに入力され、その処理結果を収めた配列を返す
             funcがエラーになる場合は空文字('')を返す
         """
+        if self.multiple_lines:
+            func = wrapper.support_multiplelines(func, self.multiple_lines_delimiter)
         func = wrapper.non_error(func) #func処理でエラーなら''を返すラッパー関数
+
         if not hasattr(col_idxs, '__iter__'): #指定インデックスが1つのみの場合
             col_idxs = (col_idxs,)
 
@@ -2678,7 +2710,10 @@ def _file_obj2csv(fileObj):
     csv_data = [[field.strip() for field in row.split(',')] for row in fileObj] #フィールドをカンマで区切り、各フィールドをstrip()
     csv_data = _str_field2int_or_float(csv_data) #intに変換できる文字列はintに、floatに変換できる文字列はfloatに変換
     csv_instance = csv(csv_data)
-    csv_instance.name = fileObj.name
+    if hasattr(fileObj, 'name'): #ファイルからデータを読み込んだ場合はファイル名が取得できる
+        csv_instance.name = fileObj.name
+    else:
+        csv_instance.name = ''
     return csv_instance
 
 #文字幅関係------------------------------
