@@ -664,15 +664,6 @@
 #       123_456_789, 1_234_567, 12_345,  123
 #       
 #
-#       #行列の回転もできる(右回転: rotate_right, 左回転: rotate_left)
-#       >>> t.rotate_right()
-#       >>> t.print()
-#       123_456_789, FUGA, d
-#         1_234_567, HOGE, c
-#            12_345, fuga, b
-#               123, hoge, a
-#       
-#
 #----------------------------------------------------------------------------------------------------
 #       #fillメソッド、map_fieldメソッド、research_field、csv2list、counter_columnメソッドの使用例
 #       #2次元配列からcsvデータ作成
@@ -1181,6 +1172,45 @@
 #       
 #       
 #----------------------------------------------------------------------------------------------------
+#       #csvデータの回転
+#       #
+#       #   csvデータを左右に45度、90度毎に回転させるメソッドが用意されている
+#       #   rotate_l45, rotate_r45, rotate_l90, rotate_r90
+#       #
+#       >>> r = csv.csv([[1,2,3], [4,5,6], [7,8,9]])
+#       >>> r.border_grouping = False
+#       >>> r.print2()
+#       +--+--+--+
+#       | 1| 2| 3|
+#       +--+--+--+
+#       | 4| 5| 6|
+#       +--+--+--+
+#       | 7| 8| 9|
+#       +--+--+--+
+#       >>> 
+#       >>> r.rotate_r45(); r.print2()
+#       +--+--+--+--+--+
+#       |  |  | 1|  |  |
+#       +--+--+--+--+--+
+#       |  | 4|  | 2|  |
+#       +--+--+--+--+--+
+#       | 7|  | 5|  | 3|
+#       +--+--+--+--+--+
+#       |  | 8|  | 6|  |
+#       +--+--+--+--+--+
+#       |  |  | 9|  |  |
+#       +--+--+--+--+--+
+#       >>> r.rotate_r45(); r.print2()
+#       +--+--+--+
+#       | 7| 4| 1|
+#       +--+--+--+
+#       | 8| 5| 2|
+#       +--+--+--+
+#       | 9| 6| 3|
+#       +--+--+--+
+#       
+#       
+#----------------------------------------------------------------------------------------------------
 #       #csvデータの表示を他のアプリケーションで行う
 #       #
 #       #   IDLEやターミナルなどは横スクロール機能が無いため、csvの列データが多すぎると表示が折り返されて正常に表示できない
@@ -1223,10 +1253,10 @@
 #
 #       
 
-__all__ = ['csv', 'print_contextmanager', 'wrapper', #class
+__all__ = ['csv', 'print_contextmanager', 'wrapper', 'magic', #class
            'load', 'str2csv', 'list2csv', 'dict2csv', 'str2list', 'list2str', 'row2column', 'chk_border', #public function
            ]
-__version__ = '3.1.8'
+__version__ = '3.1.9'
 __author__ = 'ShiraiTK'
 
 from collections import Counter, defaultdict
@@ -1481,6 +1511,56 @@ class wrapper(object):
             else:
                 return func(iterable)
         return wrapper_func
+
+#------------------------------
+# magicクラス
+#------------------------------
+class magic(object):
+    @staticmethod
+    def odd_magic(odd_number=3):
+        """
+        奇数辺の魔法陣を作成する
+        """
+        if odd_number >=3 and odd_number % 2 != 0:
+            pass
+        else:
+            return #偶数は無視
+
+        m = list2csv(list(range(1, odd_number**2+1)), odd_number)
+        m.rotate_r45()
+
+        center_idx = m._row_center()
+        extra = (m._row_len() - odd_number) // 2
+        def marge(lst1, lst2):
+            [lst1.pop(idx) or lst1.insert(idx, lst2_data) if lst1_data=='' and lst2_data!='' else None
+             for idx,(lst1_data,lst2_data) in enumerate(zip(lst1, lst2))]
+
+        def puzzle():
+            piece_top = m.csv[:extra]
+            piece_btm = m.csv[-extra:]
+            m.csv = m.csv[extra:-extra]
+            area_top = m.csv[:extra]
+            area_btm = m.csv[-extra:]
+            [marge(lst1, lst2) for area, piece in [(area_btm, piece_top), (area_top, piece_btm)] for lst1, lst2 in zip(area, piece)]
+
+        puzzle()
+        m.rotate_r90()
+        puzzle()
+        m.rotate_l90()
+
+        return m
+
+    @staticmethod
+    def even_magic(even_number=4):
+        """
+        偶数辺の魔法陣を作成する
+        """
+        if even_number >=4 and even_number % 2 == 0:
+            pass
+        else:
+            return #奇数は無視
+
+        pass
 
 #------------------------------
 # csvクラス
@@ -2427,14 +2507,40 @@ class csv(object):
         """
         return [j for i in self.csv for j in i]
 
-    def rotate_left(self):
+    def rotate_l45(self):
+        """
+        csvデータを左に45度回転させる
+        """
+        row_len = self._row_len()
+
+        self.rotate_l90()
+        self.csv = [['']*col_idx+col for col_idx, col in enumerate(self.csv)]
+        self.rotate_r90()
+        [row.append('') if -row_idx+slit_idx >= 0 else row.insert(-row_idx+slit_idx, '') for row_idx, row in enumerate(self.csv)
+         for slit_idx in range(row_len-1)] #右斜め下にフィールド値を移動
+        self.trim()
+
+    def rotate_r45(self):
+        """
+        csvデータを右に45度回転させる
+        """
+        row_len = self._row_len()
+
+        self.row2column()
+        self.csv = [['']*col_idx+col for col_idx, col in enumerate(self.csv)]
+        self.row2column()
+        [row.insert(0, '') if row_idx-slit_idx <= 0 else row.insert(row_idx-slit_idx, '') for row_idx, row in enumerate(self.csv)
+         for slit_idx in range(row_len-1)] #左斜め下にフィールド値を移動
+        self.trim()
+
+    def rotate_l90(self):
         """
         csvデータを左に90度回転させる
         """
         self.row2column()
         self.csv = self.csv[::-1]
 
-    def rotate_right(self):
+    def rotate_r90(self):
         """
         csvデータを右に90度回転させる
         """
