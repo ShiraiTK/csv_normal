@@ -1256,7 +1256,7 @@
 __all__ = ['csv', 'print_contextmanager', 'wrapper', 'magic', #class
            'load', 'str2csv', 'list2csv', 'dict2csv', 'str2list', 'list2str', 'row2column', 'chk_border', #public function
            ]
-__version__ = '3.1.9'
+__version__ = '3.2.0'
 __author__ = 'ShiraiTK'
 
 from collections import Counter, defaultdict
@@ -1517,15 +1517,67 @@ class wrapper(object):
 #------------------------------
 class magic(object):
     @staticmethod
-    def odd_magic(odd_number=3):
+    def is_magic(csv_data, verbose=True):
+        """
+        csv_dataが魔法陣か判定する
+        """
+        magic_info = {'natural_num':False, 'row_sum':None, 'col_sum':None, 'slash_sum':None, 'bslash_sum':None}
+
+        #csv_dataが1から始まる連番かどうかをチェック
+        #数字以外のフィールド値は無視
+        csv_data_elements = sorted(i for i in set(chain.from_iterable(csv_data))
+                                   if isinstance(i,int) or isinstance(i,float))
+        if csv_data_elements == list(range(1, csv_data_elements[-1]+1)):
+            magic_info['natural_num'] = True
+
+        #各行の合計値
+        sum_nums = wrapper.arg_of_numlist(sum)
+        row_sum = tuple(sum_nums(row) for row in csv_data)
+        set_row_sum = set(row_sum)
+        if len(set_row_sum) == 1:
+            row_sum = list(set_row_sum)[0] #全部同じ値なら1つにまとめる
+        magic_info['row_sum'] = row_sum
+
+        #各列の合計値
+        col_sum = tuple(sum_nums(col) for col in row2column(csv_data))
+        set_col_sum = set(col_sum)
+        if len(set_col_sum) == 1:
+            col_sum = list(set_col_sum)[0] #全部同じ値なら1つにまとめる
+        magic_info['col_sum'] = col_sum
+
+        #対角線の合計値
+        csv_data_low_len = len(csv_data[0])
+        magic_info['slash_sum'] = sum_nums([csv_data[i][-i-1] for i in range(csv_data_low_len)])
+        magic_info['bslash_sum'] = sum_nums([csv_data[i][i] for i in range(csv_data_low_len)])
+
+        if verbose:
+            [print(f'{key:12s}: {value}') for key, value in magic_info.items()]
+
+        if magic_info['natural_num'] and len(set(magic_info[key] for key in magic_info if key != 'natural_num'))==1:
+            return True
+        else:
+            return False
+
+    @staticmethod
+    def magic(magic_num=3):
+        """
+        魔法陣を作成する
+        """
+        if magic_num >= 3:
+            pass
+        else:
+            return #3以下の数字は無視
+
+        if magic_num % 2 == 0:
+            return magic._even_magic(magic_num)
+        else:
+            return magic._odd_magic(magic_num)
+
+    @staticmethod
+    def _odd_magic(odd_number=3):
         """
         奇数辺の魔法陣を作成する
         """
-        if odd_number >=3 and odd_number % 2 != 0:
-            pass
-        else:
-            return #偶数は無視
-
         m = list2csv(list(range(1, odd_number**2+1)), odd_number)
         m.rotate_r45()
 
@@ -1551,15 +1603,10 @@ class magic(object):
         return m
 
     @staticmethod
-    def even_magic(even_number=4):
+    def _even_magic(even_number=4):
         """
         偶数辺の魔法陣を作成する
         """
-        if even_number >=4 and even_number % 2 == 0:
-            pass
-        else:
-            return #奇数は無視
-
         pass
 
 #------------------------------
@@ -2546,6 +2593,40 @@ class csv(object):
         """
         self.row2column()
         self.csv = [row[::-1] for row in self.csv]
+
+    def invert_x(self):
+        """
+        x軸で反転
+        """
+        self.csv = self.csv[::-1]
+
+    def invert_y(self):
+        """
+        y軸で反転
+        """
+        self.csv = [row[::-1] for row in self.csv]
+
+    def invert_xy(self):
+        """
+        x軸で反転 and y軸で反転
+        """
+        self.invert_x()
+        self.invert_y()
+
+    def invert_slash(self):
+        """
+        斜め(スラッシュ)軸で反転
+        """
+        self.row2column()
+        self.invert_xy()
+
+    def invert_bslash(self):
+        """
+        斜め(バックスラッシュ)軸で反転
+        """
+        self.row2column()
+        self.rotate_r90(); self.rotate_r90();
+        self.invert_xy()
 
     #------------------------------
     # データ集計
