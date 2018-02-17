@@ -1256,7 +1256,7 @@
 __all__ = ['csv', 'print_contextmanager', 'wrapper', 'magic', #class
            'load', 'str2csv', 'list2csv', 'dict2csv', 'str2list', 'list2str', 'row2column', 'chk_border', #public function
            ]
-__version__ = '3.2.0'
+__version__ = '3.2.1'
 __author__ = 'ShiraiTK'
 
 from collections import Counter, defaultdict
@@ -1517,9 +1517,11 @@ class wrapper(object):
 #------------------------------
 class magic(object):
     @staticmethod
-    def is_magic(csv_data, verbose=True):
+    def is_magic(csv_data, info={}, verbose=True):
         """
         csv_dataが魔法陣か判定する
+            info: 辞書を設定して呼び出せば通常より詳しい判定情報(magic_info)を渡す
+            verbose: Trueならば通常より詳しい判定情報(magic_info)を表示する
         """
         magic_info = {'natural_num':False, 'row_sum':None, 'col_sum':None, 'slash_sum':None, 'bslash_sum':None}
 
@@ -1549,6 +1551,9 @@ class magic(object):
         csv_data_low_len = len(csv_data[0])
         magic_info['slash_sum'] = sum_nums([csv_data[i][-i-1] for i in range(csv_data_low_len)])
         magic_info['bslash_sum'] = sum_nums([csv_data[i][i] for i in range(csv_data_low_len)])
+
+        if isinstance(info, dict):
+            info.update(magic_info) #info引数に辞書を設定して本関数を呼び出せばmagic_infoを渡す
 
         if verbose:
             [print(f'{key:12s}: {value}') for key, value in magic_info.items()]
@@ -1603,11 +1608,87 @@ class magic(object):
         return m
 
     @staticmethod
+    def _flat(csv_data):
+        """
+        csv_dataの縦横の合計値の差異が少なくなるように整える
+        """
+        m = csv(csv_data)
+        m.row2column()
+        m.csv = [row if row_idx%2==0 else [i for i in row[::-1]] for row_idx, row in enumerate(m.csv)]
+        #m.print2() ###
+        #magic.is_magic(m.csv) ###
+        return m
+
+    @staticmethod
     def _even_magic(even_number=4):
         """
         偶数辺の魔法陣を作成する
         """
-        pass
+        m = list2csv(list(range(1, even_number**2+1)), even_number)
+
+        #csvデータをフラット化
+        magic_info = {'slash_sum':True, 'bslash_sum':False} #値はダミー
+        while magic_info['slash_sum'] != magic_info['bslash_sum']:
+            m = magic._flat(m.csv)
+            magic.is_magic(m.csv, magic_info, verbose=False)
+
+        #対角線を含まない各斜め要素を直行する対角軸で反転
+        slash = m.get_slash() #対角線(スラッシュ)
+        slash_stripe = m.get_slash_stripe() - slash #対角線要素を削除
+        slash_stripe.invert_bslash()
+
+        bslash = m.get_bslash() #対角線(バックスラッシュ)
+        bslash_stripe = m.get_bslash_stripe() - bslash #対角線要素を削除
+        bslash_stripe.invert_slash()
+
+        m = m.get_diagonal() + slash_stripe + bslash_stripe
+        if magic.is_magic(m.csv, magic_info, verbose=False): #魔法陣になっていれば完了
+            return m
+        #m.print2(); (m-m.get_diagonal()).print2(); magic.is_magic(m.csv) ###
+
+        #各行列の合計値を揃える
+        #   8x8
+        #   +--+--+--+--+--+--+--+--+   +--+--+--+--+--+--+--+--+
+        #   | 1|63|62|61|60|59|58| 8|   | 0|63|62|61|60|59|58| 0|
+        #   +--+--+--+--+--+--+--+--+   +--+--+--+--+--+--+--+--+
+        #   |56|10|54|53|52|51|15|49|   |56| 0|54|53|52|51| 0|49| <-対角線の外側から入れ替えていく(56<->16, 49<->9)
+        #   +--+--+--+--+--+--+--+--+   +--+--+--+--+--+--+--+--+   対角線の外側を全部入れ替えてもまだ入れ替える必要があれば
+        #   |48|47|19|45|44|22|42|41|   |48|47| 0|45|44| 0|42|41|   次は中心から入れ替える(53<->13)
+        #   +--+--+--+--+--+--+--+--+   +--+--+--+--+--+--+--+--+   これでインデックス1,-1の行の合計値が揃った
+        #   |40|39|38|28|29|35|34|33|   |40|39|38| 0  0|35|34|33|
+        #   +--+--+--+--+--+--+--+--+   +--+--+--+  +  +--+--+--+
+        #   |32|31|30|36|37|27|26|25|   |32|31|30| 0  0|27|26|25|
+        #   +--+--+--+--+--+--+--+--+   +--+--+--+--+--+--+--+--+
+        #   |24|23|43|21|20|46|18|17|   |24|23| 0|21|20| 0|18|17|
+        #   +--+--+--+--+--+--+--+--+   +--+--+--+--+--+--+--+--+
+        #   |16|50|14|13|12|11|55| 9|   |16| 0|14|13|12|11| 0| 9| <-
+        #   +--+--+--+--+--+--+--+--+   +--+--+--+--+--+--+--+--+
+        #   |57| 7| 6| 5| 4| 3| 2|64|   | 0| 7| 6| 5| 4| 3| 2| 0|
+        #   +--+--+--+--+--+--+--+--+   +--+--+--+--+--+--+--+--+
+        center = m._row_center()
+        length = m._row_len()
+        indexs = list(range(length))
+        total_value = magic_info['slash_sum']
+        def align_total_value(sum_info):
+            for row_idx, row_sum in enumerate(sum_info[:center]):
+                difference = abs(total_value - row_sum)
+                #print(f'row_idx: {row_idx}, row_sum: {row_sum}, difference: {difference}, m.csv[row_idx]: {m.csv[row_idx]}')###
+                l = list(chain.from_iterable(zip(indexs[:center][:row_idx][::-1] + indexs[:center][row_idx:][::-1],
+                                                 indexs[center:][-row_idx:] + indexs[center:][:-row_idx])))
+                num = difference // abs(m.csv[row_idx][l[0]] - m.csv[-row_idx-1][l[0]]) #入れ替える数
+                for col_idx in l[num:]:
+                    m.csv[row_idx][col_idx], m.csv[-row_idx-1][col_idx] = m.csv[-row_idx-1][col_idx], m.csv[row_idx][col_idx]
+
+        #各行の合計値を揃える
+        align_total_value(magic_info['row_sum'])
+
+        #各列の合計値を揃える
+        m.row2column()
+        align_total_value(magic_info['col_sum'])
+        m.row2column()
+
+        #magic.is_magic(m.csv)
+        return m
 
 #------------------------------
 # csvクラス
@@ -1715,6 +1796,49 @@ class csv(object):
 
     def _col_center(self):
         return self._col_len()//2
+
+    #------------------------------
+    # 演算子
+    #------------------------------
+    def __add__(self, other):
+        return csv._cal_csv(self, other, '+')
+
+    def __sub__(self, other):
+        return csv._cal_csv(self, other, '-')
+
+    @staticmethod
+    def _cal_csv(csv1, csv2, operator):
+        if all(isinstance(i, csv) for i in (csv1, csv2)):
+            csv_data = [[csv._cal_field(self_field, other_field, operator)
+                        for self_field, other_field in zip_longest(self_row, other_row, fillvalue='')]
+                        for self_row, other_row in zip_longest(csv1.csv, csv2.csv, fillvalue='')]
+            new_csv = csv(csv_data)
+            new_csv._copy_property(csv1)
+            return new_csv
+
+    @staticmethod
+    def _cal_field(field1, field2, operator):
+        if operator == '+':
+            cal = lambda x,y: x+y
+
+        if operator == '-':
+            cal = lambda x,y: x-y
+
+        blank = '' #空フィールド
+        fields = [field for field in (field1, field2) if field != blank]
+        if len(fields) == 0:
+            return blank #どちらも空フィールドなら空フィールドを返す
+        elif len(fields) == 1:
+            return fields[0] #どちらかが空フィールドなら空フィールドじゃない方を返す
+        else:
+            try:
+                new_field = cal(*fields)
+            except TypeError:
+                #エラー箇所が分かりやすいようにエラー情報追加
+                print(f'ERROR: {repr(fields[0])} {operator} {repr(fields[1])}')
+                raise
+
+            return new_field
 
     #------------------------------
     # 表示
@@ -2627,6 +2751,53 @@ class csv(object):
         self.row2column()
         self.rotate_r90(); self.rotate_r90();
         self.invert_xy()
+
+    def get_slash(self):
+        """
+        斜め(スラッシュ)軸要素を新しいcsvインスタンスとして返す
+        """
+        row_len = self._row_len()
+        csv_data = [[field if abs(field_idx+row_idx)==row_len-1 else ''  for field_idx, field in enumerate(row)]
+                    for row_idx, row in enumerate(self.csv)]
+        new_csv = csv(csv_data)
+        new_csv._copy_property(self)
+        return new_csv
+
+    def get_bslash(self):
+        """
+        斜め(バックスラッシュ)軸要素を新しいcsvインスタンスとして返す
+        """
+        csv_data = [[field if field_idx==row_idx else ''  for field_idx, field in enumerate(row)]
+                    for row_idx, row in enumerate(self.csv)]
+        new_csv = csv(csv_data)
+        new_csv._copy_property(self)
+        return new_csv
+
+    def get_diagonal(self):
+        """
+        csvデータの対角線要素を新しいcsvインスタンスとして返す
+        """
+        return self.get_slash() + self.get_bslash()
+
+    def get_slash_stripe(self):
+        """
+        ストライプ(スラッシュ方向)要素を新しいcsvインスタンスとして返す
+        """
+        csv_data = [[field if (field_idx+row_idx)%2==1 else ''  for field_idx, field in enumerate(row)]
+                    for row_idx, row in enumerate(self.csv)]
+        new_csv = csv(csv_data)
+        new_csv._copy_property(self)
+        return new_csv
+
+    def get_bslash_stripe(self):
+        """
+        ストライプ(バックスラッシュ方向)要素を新しいcsvインスタンスとして返す
+        """
+        csv_data = [[field if (field_idx+row_idx)%2==0 else ''  for field_idx, field in enumerate(row)]
+                    for row_idx, row in enumerate(self.csv)]
+        new_csv = csv(csv_data)
+        new_csv._copy_property(self)
+        return new_csv
 
     #------------------------------
     # データ集計
