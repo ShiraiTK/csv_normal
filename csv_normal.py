@@ -1519,7 +1519,7 @@ class magic(object):
     @staticmethod
     def is_magic(csv_data, info={}, verbose=True):
         """
-        csv_dataが魔法陣か判定する
+        csv_dataが魔方陣か判定する
             info: 辞書を設定して呼び出せば通常より詳しい判定情報(magic_info)を渡す
             verbose: Trueならば通常より詳しい判定情報(magic_info)を表示する
         """
@@ -1566,7 +1566,7 @@ class magic(object):
     @staticmethod
     def magic(magic_num=3):
         """
-        魔法陣を作成する
+        魔方陣を作成する
         """
         if magic_num >= 3:
             pass
@@ -1581,7 +1581,7 @@ class magic(object):
     @staticmethod
     def _odd_magic(odd_number=3):
         """
-        奇数辺の魔法陣を作成する
+        奇数辺の魔方陣を作成する
         """
         m = list2csv(list(range(1, odd_number**2+1)), odd_number)
         m.rotate_r45()
@@ -1622,7 +1622,7 @@ class magic(object):
     @staticmethod
     def _even_magic(even_number=4):
         """
-        偶数辺の魔法陣を作成する
+        偶数辺の魔方陣を作成する
         """
         m = list2csv(list(range(1, even_number**2+1)), even_number)
 
@@ -1642,7 +1642,7 @@ class magic(object):
         bslash_stripe.invert_slash()
 
         m = m.get_diagonal() + slash_stripe + bslash_stripe
-        if magic.is_magic(m.csv, magic_info, verbose=False): #魔法陣になっていれば完了
+        if magic.is_magic(m.csv, magic_info, verbose=False): #魔方陣になっていれば完了
             return m
         #m.print2(); (m-m.get_diagonal()).print2(); magic.is_magic(m.csv) ###
 
