@@ -1676,7 +1676,7 @@ class magic(object):
                 l = list(chain.from_iterable(zip(indexs[:center][:row_idx][::-1] + indexs[:center][row_idx:][::-1],
                                                  indexs[center:][-row_idx:] + indexs[center:][:-row_idx])))
                 num = difference // abs(m.csv[row_idx][l[0]] - m.csv[-row_idx-1][l[0]]) #入れ替える数
-                for col_idx in l[num:]:
+                for col_idx in l[:num]:
                     m.csv[row_idx][col_idx], m.csv[-row_idx-1][col_idx] = m.csv[-row_idx-1][col_idx], m.csv[row_idx][col_idx]
 
         #各行の合計値を揃える
