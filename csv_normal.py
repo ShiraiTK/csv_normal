@@ -1801,10 +1801,10 @@ class csv(object):
     # 演算子
     #------------------------------
     def __add__(self, other):
-        return csv._cal_csv(self, other, '+')
+        return csv._cal_csv(self, other, lambda x,y: x+y)
 
     def __sub__(self, other):
-        return csv._cal_csv(self, other, '-')
+        return csv._cal_csv(self, other, lambda x,y: x-y)
 
     @staticmethod
     def _cal_csv(csv1, csv2, operator):
@@ -1818,12 +1818,6 @@ class csv(object):
 
     @staticmethod
     def _cal_field(field1, field2, operator):
-        if operator == '+':
-            cal = lambda x,y: x+y
-
-        if operator == '-':
-            cal = lambda x,y: x-y
-
         blank = '' #空フィールド
         fields = [field for field in (field1, field2) if field != blank]
         if len(fields) == 0:
@@ -1832,10 +1826,10 @@ class csv(object):
             return fields[0] #どちらかが空フィールドなら空フィールドじゃない方を返す
         else:
             try:
-                new_field = cal(*fields)
+                new_field = operator(*fields)
             except TypeError:
                 #エラー箇所が分かりやすいようにエラー情報追加
-                print(f'ERROR: {repr(fields[0])} {operator} {repr(fields[1])}')
+                print(f'ERROR: {operator}({repr(fields[0])}, {repr(fields[1])})')
                 raise
 
             return new_field
