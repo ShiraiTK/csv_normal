@@ -1256,7 +1256,7 @@
 __all__ = ['csv', 'print_contextmanager', 'wrapper', 'magic', #class
            'load', 'str2csv', 'list2csv', 'dict2csv', 'str2list', 'list2str', 'row2column', 'chk_border', #public function
            ]
-__version__ = '3.2.3'
+__version__ = '3.2.4'
 __author__ = 'ShiraiTK'
 
 from collections import Counter, defaultdict
@@ -3061,18 +3061,18 @@ class csv(object):
 #------------------------------
 # 公開関数
 #------------------------------
-def load(csv_file, encoding=None):
+def load(csv_file, sep=',', encoding=None):
     """
     csvファイル(csv_file)からcsvデータを読み出す
     """
     with open(csv_file, encoding=encoding) as f:
-        return _file_obj2csv(f)
+        return _file_obj2csv(f, sep=sep)
 
-def str2csv(string):
+def str2csv(string, sep=','):
     """
     文字列をcsvデータに変換する
     """
-    return _file_obj2csv(io.StringIO(string))
+    return _file_obj2csv(io.StringIO(string), sep=sep)
 
 def list2csv(lst, col_num):
     """
@@ -3119,11 +3119,12 @@ def chk_border():
 #------------------------------
 # 非公開関数
 #------------------------------
-def _file_obj2csv(fileObj):
+def _file_obj2csv(fileObj, sep=','):
     """
     ファイルオブジェクトからcsvデータを読み出す
     """
-    csv_data = [[field.strip() for field in row.split(',')] for row in fileObj] #フィールドをカンマで区切り、各フィールドをstrip()
+    re_sep = re.compile(sep)
+    csv_data = [[field.strip() for field in re_sep.split(row.strip())] for row in fileObj] #フィールドをsepで区切り、各フィールドをstrip()
     csv_data = _str_field2int_or_float(csv_data) #intに変換できる文字列はintに、floatに変換できる文字列はfloatに変換
     csv_instance = csv(csv_data)
     if hasattr(fileObj, 'name'): #ファイルからデータを読み込んだ場合はファイル名が取得できる
