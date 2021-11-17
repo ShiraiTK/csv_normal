@@ -1256,7 +1256,7 @@
 __all__ = ['csv', 'print_contextmanager', 'wrapper', 'magic', #class
            'load', 'str2csv', 'list2csv', 'dict2csv', 'str2list', 'list2str', 'row2column', 'chk_border', #public function
            ]
-__version__ = '3.2.2'
+__version__ = '3.2.1'
 __author__ = 'ShiraiTK'
 
 from collections import Counter, defaultdict
@@ -2040,9 +2040,9 @@ class csv(object):
         """
         return Counter([self.csv[row_idx][col_idx] for row_idx in range(len(self.csv))])
 
-    def _fields_string_format(self, row_start_idx=0, row_end_idx=None, header_aligns=None, aligns=None, widths=None):
+    def _csv_string_format(self, row_start_idx=0, row_end_idx=None, header_aligns=None, aligns=None, widths=None):
         """
-        self.csvの行列の各フィールドを文字列にして返す
+        self.csvの行列を文字列にして返す
             各列の文字列幅を均一にする(全角文字が混じっていてもズレません)
             self.csvの行範囲[row_start_idx:row_end_idx]を指定可能
 
@@ -2052,6 +2052,17 @@ class csv(object):
                 ・widths: 各列のwidthを設定する辞書{列インデックス: width}
             ※列インデックスで指定されていない他の全ての設定をNoneキーで設定できる
         """
+        row_len = len(self.csv)
+        if row_start_idx is not None:
+            remain_toplines_num = len(self.csv[:row_start_idx])
+        else:
+            remain_toplines_num = 0
+
+        if row_end_idx is not None:
+            remain_bottomlines_num = len(self.csv[row_end_idx:])
+        else:
+            remain_bottomlines_num = 0
+
         csv_data = self.csv[row_start_idx:row_end_idx]
         columns = row2column(csv_data)
 
@@ -2128,33 +2139,10 @@ class csv(object):
             else:
                 return str(field)
 
-        return [[f'{get_data(col_data):{get_format(row_idx, col_idx, col_data)}}' for col_idx, col_data in enumerate(row_data)]
-                for row_idx, row_data in enumerate(csv_data)]
-
-    def _csv_string_format(self, row_start_idx=0, row_end_idx=None, header_aligns=None, aligns=None, widths=None):
-        """
-        self.csvの行列を文字列にして返す
-            各列の文字列幅を均一にする(全角文字が混じっていてもズレません)
-            self.csvの行範囲[row_start_idx:row_end_idx]を指定可能
-
-            各列の書式指定を個別に指定できる:
-                ・header_aligns: ヘッダーのalignを設定する辞書{列インデックス: align} (align: 左詰め='<'、右詰め='>', 中央寄せ='^')
-                ・aligns: 各列のalignを設定する辞書{列インデックス: align} (align: 左詰め='<'、右詰め='>', 中央寄せ='^')
-                ・widths: 各列のwidthを設定する辞書{列インデックス: width}
-            ※列インデックスで指定されていない他の全ての設定をNoneキーで設定できる
-        """
-        if row_start_idx is not None:
-            remain_toplines_num = len(self.csv[:row_start_idx])
-        else:
-            remain_toplines_num = 0
-
-        if row_end_idx is not None:
-            remain_bottomlines_num = len(self.csv[row_end_idx:])
-        else:
-            remain_bottomlines_num = 0
-
-        fields_str = self._fields_string_format(row_start_idx=row_start_idx, row_end_idx=row_end_idx, header_aligns=header_aligns, aligns=aligns, widths=widths)
-        csv_str = '\n'.join([self._display_delimiter.join(row_data) for row_data in fields_str])
+        csv_str = '\n'.join([self._display_delimiter.join(
+                                [f'{get_data(col_data):{get_format(row_idx, col_idx, col_data)}}'
+                                for col_idx, col_data in enumerate(row_data)])
+                                for row_idx, row_data in enumerate(csv_data)])
 
         if remain_toplines_num:
             csv_str = f'↑(There are {remain_toplines_num} rows)\n' + csv_str
@@ -2365,18 +2353,6 @@ class csv(object):
         フィールドをfloatに変換できたらfloatに変換する
         """
         self.csv = [[_chg_float(field) for field in row] for row in self.csv]
-
-    def money2int(self):
-        """
-        フィールドの通貨文字列をintに変換できたらintに変換する
-        """
-        self.csv = [[_chg_money2int(field) for field in row] for row in self.csv]
-
-    def money2float(self):
-        """
-        フィールドの通貨文字列をfloatに変換できたらfloatに変換する
-        """
-        self.csv = [[_chg_money2float(field) for field in row] for row in self.csv]
 
     def refresh_field(self):
         """
@@ -3035,9 +3011,10 @@ class csv(object):
         #print(f'col_max_widths: {col_max_widths}') ###
         widths = dict([(i, w) for i,w in enumerate(col_max_widths)])
 
-        d_csv._display_delimiter = ','
-        fields_str = d_csv._fields_string_format(header_aligns=header_aligns, aligns=aligns, widths=widths)
-        d_csv = csv([[field for field in row] for row in fields_str]) #csvデータ化(alignとwidth情報を消さないように各フィールドはstripしない)
+        string_delimiter = ',' #行列データを文字列化して、その後フィード値を取り出すためのデリミタ
+        d_csv._display_delimiter = string_delimiter
+        s = d_csv._csv_string_format(header_aligns=header_aligns, aligns=aligns, widths=widths)
+        d_csv = csv([[field for field in row.split(string_delimiter)] for row in s.split('\n')]) #csvデータ化(alignとwidth情報を消さないように各フィールドはstripしない)
         #d_csv.print() ###
 
         #p_csvにd_csvの値を入れる
@@ -3264,27 +3241,6 @@ def _chg_float(something):
         pass
 
     return something
-
-# ﾊﾞｯｸｽﾗｯｼｭはchr(92)とchr(165)がありファイルから読み込んだ時は\\ == chr(92)、IDLEで入力/コピペした時はchr(92)やchr(165)になる
-money = re.compile(rf'^[{chr(165)}\\$0-9.,]+$')
-del_money_symbol = rf'{chr(165)}\\$,'
-def _chg_money2int(something):
-    """
-    通貨文字列をintに変換できたらintに変換する
-    """
-    if money.match(something):
-        return _chg_int(something.translate(str.maketrans('', '', del_money_symbol)))
-    else:
-        return something
-
-def _chg_money2float(something):
-    """
-    通貨文字列をfloatに変換できたらintに変換する
-    """
-    if money.match(something):
-        return _chg_float(something.translate(str.maketrans('', '', del_money_symbol)))
-    else:
-        return something
 
 #--------------------------------------------------------------------------------
 # 枠パターン
