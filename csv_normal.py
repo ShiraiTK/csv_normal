@@ -1042,8 +1042,8 @@
 #       >>>
 #
 #
-#       #print_contextmanagerプロパティに設定する関数はcsv.Print_contextmanagerクラスに幾つか用意されている
-#       >>> n.print_contextmanager = csv.Print_contextmanager.aggregate(sum) #各行列の合計値を追加表示する
+#       #print_contextmanagerプロパティに設定する関数はcsv.PrintContextmanagerクラスに幾つか用意されている
+#       >>> n.print_contextmanager = csv.PrintContextmanager.aggregate(sum) #各行列の合計値を追加表示する
 #       >>> n.print2()
 #       +--+--+--+--+--+--+
 #       | 1| 0  0  0  0| 1|
@@ -1065,7 +1065,7 @@
 #
 #
 #       #各列の合計値を追加表示する
-#       >>> n.print_contextmanager = csv.Print_contextmanager.aggregate_col(sum)
+#       >>> n.print_contextmanager = csv.PrintContextmanager.aggregate_col(sum)
 #       >>> n.print2()
 #       +--+--+--+--+--+
 #       | 1| 0  0  0  0|
@@ -1137,7 +1137,7 @@
 #       | 1| 2| 3| 4| 5|
 #       +--+--+--+--+--+
 #       >>> 
-#       >>> n.print_contextmanager = csv.Print_contextmanager.aggregate(sum)
+#       >>> n.print_contextmanager = csv.PrintContextmanager.aggregate(sum)
 #       >>> n.print2() #合計値を集計できるのは欠損データが無い行列だけ
 #       +--+--+--+--+--+--+
 #       | 1|              |
@@ -1157,7 +1157,7 @@
 #
 #       #csv.Wrapper.arg_of_numlistで集計関数sumをラップして数字だけが渡るようにする
 #       >>> sum_nums = csv.Wrapper.arg_of_numlist(sum)
-#       >>> n.print_contextmanager = csv.Print_contextmanager.aggregate(sum_nums)
+#       >>> n.print_contextmanager = csv.PrintContextmanager.aggregate(sum_nums)
 #       >>> n.print2() #空データが無視されて各行列の合計値を集計できる
 #       +--+--+--+--+--+--+
 #       | 1|           | 1|
@@ -1344,10 +1344,10 @@
 #       
 #       
 #----------------------------------------------------------------------------------------------------
-__all__ = ['TwoDimArray', 'Print_contextmanager', 'Wrapper', 'Magic', #class
+__all__ = ['TwoDimArray', 'PrintContextmanager', 'Wrapper', 'Magic', #class
            'load', 'csv2tda', 'df2tda', 'list2tda', 'dict2tda', 'str2list', 'list2str', 'row2column', 'chk_border', #public function
            ]
-__version__ = '3.3.0'
+__version__ = '3.3.1'
 __author__ = 'ShiraiTK'
 
 from collections import Counter, defaultdict
@@ -1421,15 +1421,15 @@ def add_print_contextmanager(func):
     return wrapper
 
 #------------------------------
-# Print_contextmanagerクラス
+# PrintContextmanagerクラス
 #------------------------------
-class Print_contextmanager(object):
+class PrintContextmanager(object):
     @staticmethod
     def aggregate(func=None):
         """
         funcで集計した各行と各列の集計値をprin関連メソッド表示時に追加表示する
         """
-        @functools.wraps(Print_contextmanager.aggregate)
+        @functools.wraps(PrintContextmanager.aggregate)
         def contextmanager_func(tda_self):
             column = tda_self.map_rows(func)
             if tda_self.header_idx is not None:
@@ -1447,7 +1447,7 @@ class Print_contextmanager(object):
         """
         funcで集計した各行の集計値をprin関連メソッド表示時に追加表示する
         """
-        @functools.wraps(Print_contextmanager.aggregate_row)
+        @functools.wraps(PrintContextmanager.aggregate_row)
         def contextmanager_func(tda_self):
             column = tda_self.map_rows(func)
             if tda_self.header_idx is not None:
@@ -1463,7 +1463,7 @@ class Print_contextmanager(object):
         """
         funcで集計した各列の集計値をprin関連メソッド表示時に追加表示する
         """
-        @functools.wraps(Print_contextmanager.aggregate_col)
+        @functools.wraps(PrintContextmanager.aggregate_col)
         def contextmanager_func(tda_self):
             tda_self.data.append(tda_self.map_columns(func))
             yield
@@ -1477,7 +1477,7 @@ class Print_contextmanager(object):
         header_fieldで指定した列を集計対象とし、
         funcで集計した各行と各列の集計値をprin関連メソッド表示時に追加表示する
         """
-        @functools.wraps(Print_contextmanager.aggregate_line)
+        @functools.wraps(PrintContextmanager.aggregate_line)
         def contextmanager_func(tda_self):
             if not tda_self._exists_header():
                 yield
