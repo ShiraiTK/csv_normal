@@ -1,7 +1,11 @@
-#!python3.6
+#!python3
+# coding: utf-8
 
 """
 フィールドはカンマで区切り、行は改行で分けるノーマルなcsvを扱うモジュール
+    csvデータからTwoDimArrayを作成し二次元配列として処理する
+
+    ※セパレータはデフォルトでカンマとなっているが、任意に指定可能で正規表現も指定できる
     ※フィールドの左右の空白は無視する('  hoge fuga  ' -> 'hoge fuga')
 """
 
@@ -9,7 +13,7 @@
 #   使用例
 #       >>> import csv_normal as csv
 #
-#       #sample.csvファイルからcsvデータを読み込む
+#       #sample.csvファイルからcsvデータを読み込み、TwoDimArray(二次元配列)を作成
 #       >>> c = csv.load('sample.csv', encoding='utf8')
 #
 #
@@ -18,7 +22,7 @@
 #       (7, 8)
 #
 #
-#       #print関数でcsvデータを行列表示(先頭5行まで表示し、残りは省略表示する)
+#       #print関数でTwoDimArrayを行列表示(先頭5行まで表示し、残りは省略表示する)
 #       >>> print(c)
 #       Name   , Strength   , Buttle Power, Birthdate   , Sex   , Race     , Height(cm), Weight(kg)
 #       Goku   , very strong,    3_000_000, Age-737-year, Male  , Saiyan   ,        175,         62
@@ -28,7 +32,7 @@
 #       ↓(There are 2 rows)
 #       
 #
-#       #printメソッドでcsvデータを行列表示(全データを表示する)
+#       #printメソッドでTwoDimArrayを行列表示(全データを表示する)
 #       >>> c.print()
 #       Name   , Strength   , Buttle Power, Birthdate   , Sex   , Race     , Height(cm), Weight(kg)
 #       Goku   , very strong,    3_000_000, Age-737-year, Male  , Saiyan   ,        175,         62
@@ -39,7 +43,7 @@
 #       Yamcha , weak       ,        1_480, Age-733-year, Male  , Earthling,        183,         68
 #       
 #
-#       #printメソッドはcsvデータの表示範囲を選択できる
+#       #printメソッドはTwoDimArrayの表示範囲を選択できる
 #       >>> c.print(3)
 #       Name  , Strength   , Buttle Power, Birthdate   , Sex , Race  , Height(cm), Weight(kg)
 #       Goku  , very strong,    3_000_000, Age-737-year, Male, Saiyan,        175,         62
@@ -47,7 +51,7 @@
 #       ↓(There are 4 rows)
 #       
 #       
-#       #print2メソッドはcsvデータを枠で囲んで表示する(表示範囲の選択も可能)
+#       #print2メソッドはTwoDimArrayを枠で囲んで表示する(表示範囲の選択も可能)
 #       >>> c.print2()
 #       +--------+------------+------------+------------+------+----------+----------+----------+
 #       |Name    |Strength    |Buttle Power|Birthdate   |Sex   |Race      |Height(cm)|Weight(kg)|
@@ -255,12 +259,12 @@
 #       'Race'
 #       >>>
 #
-#       >>> c['Race'] #csvインスタンスのインデクシングからもget_header_idxメソッドを呼び出せる
+#       >>> c['Race'] #TwoDimArrayインスタンスのインデクシングからもget_header_idxメソッドを呼び出せる
 #       5
 #       >>>
 #
 #
-#       #csvデータへの問い合わせが可能
+#       #TwoDimArrayへの問い合わせが可能
 #       >>> c.inquire_field_value('Goku', 'Sex') #孫悟空の性別は？
 #       'Male'
 #       >>> c.inquire_field_value('Male', 'Height(cm)') #男の身長は？
@@ -268,7 +272,7 @@
 #       >>>
 #
 #
-#       #csvデータのフィールド情報の取得、インデックスの確認が可能
+#       #TwoDimArrayのフィールド情報の取得、インデックスの確認が可能
 #       >>> c.get_field_value(3, 0)
 #       'Piccolo'
 #       >>> 
@@ -280,7 +284,7 @@
 #       [(4, 5), (5, 5), (6, 5)]
 #       >>>
 #
-#       >>> c('Earthling') #csvインスタンスのインスタンス呼び出しからもget_field_idxメソッドを呼び出せる
+#       >>> c('Earthling') #TwoDimArrayインスタンスのインスタンス呼び出しからもget_field_idxメソッドを呼び出せる
 #       (4, 5)
 #       >>>
 #
@@ -318,16 +322,16 @@
 #       ↓(There are 2 rows)
 #       
 #
-#       #csvデータはcsvの中に入っているので直接編集可能
-#       #(列操作用のメソッドは用意してあるが、基本的な行操作は簡単な配列操作で行えるので直接csvを操作する)
+#       #TwoDimArrayの生データはdataの中に入っているので直接編集可能
+#       #(列操作用のメソッドは用意してあるが、基本的な行操作は簡単な配列操作で行えるので直接dataを操作する)
 #       #
-#       >>> c.csv
+#       >>> c.data
 #       [['Name', 'Sex', 'Birthdate', 'Height(cm)', 'Weight(kg)'], ['Goku', 'Male', 'Age-737-year', 175, 62], ['Vegeta', 'Male', 'Age-732-year', 164, 56], ['Piccolo', 'Male', 'Age-753-year', 226, 116], ['Bulma', 'Female', 'Age-733-year', 165, 49], ['Krillin', 'Male', 'Age-736-year', 153, 45], ['Yamcha', 'Male', 'Age-733-year', 183, 68]]
 #       >>>
 #
 #
-#       #csvデータにデータ追加(csv.str2list関数は文字列を配列に変換する)
-#       >>> c.csv.append(csv.str2list('Trunks, Male, Age-766-year, 170, 60'))
+#       #TwoDimArrayにデータ追加(csv.str2list関数は文字列を配列に変換する)
+#       >>> c.data.append(csv.str2list('Trunks, Male, Age-766-year, 170, 60'))
 #       >>> c.print()
 #       Name   , Sex   , Birthdate   , Height(cm), Weight(kg)
 #       Goku   , Male  , Age-737-year,        175,         62
@@ -354,7 +358,7 @@
 #       9,        ,       ,             ,           ,           
 #       
 #
-#       #身長と体重からBMI係数を算出し、csvデータの最後尾に追加
+#       #身長と体重からBMI係数を算出し、TwoDimArrayの最後尾に追加
 #       #
 #       #   cal_columnsメソッドの引数:
 #       #       計算に必要なデータ(身長、体重)がある列の指定(4,5)、
@@ -465,7 +469,7 @@
 #       ↓(There are 5 rows)
 #       
 #
-#       #取り出した列をcsvデータの最後尾に追加
+#       #取り出した列をTwoDimArrayの最後尾に追加
 #       >>> man.extend_columns(None, sex_birthdate)
 #       >>> man.print()
 #       No., Name   , Height(cm), Weight(kg), BMI, Sex, Birthdate
@@ -480,7 +484,7 @@
 #         9,        ,           ,           ,    ,    ,          
 #       
 #
-#       #csvデータを枠で囲む
+#       #TwoDimArrayを枠で囲む
 #       #枠の種類(border_pattern)はchk_border関数で確認できる(例ではborder_pattern='Grid'を選択している)
 #       #
 #       >>> man2 = man.wrap_border('Grid')
@@ -553,31 +557,31 @@
 #       +----------+----------+----------+----------+----------+------+----------+
 #       
 #
-#       #csvデータをsample2.csvファイルに保存
+#       #TwoDimArrayをsample2.csvファイルに保存
 #       >>> man.save('sample2.csv', encoding='utf8')
 #
 #
-#       #csvデータをsample2.csvファイルに追加保存
+#       #TwoDimArrayをsample2.csvファイルに追加保存
 #       >>> man3.save('sample2.csv', mode='a', encoding='utf8')
 #
 #
 #----------------------------------------------------------------------------------------------------
-#       #文字列から簡単にcsvデータを作成できる
+#       #文字列から簡単にTwoDimArrayを作成できる
 #       #フィールドを複数行で表示するmultiple-lines表示が可能
 #       #
 #       #   multiple-linesのデリミタはr'\n' == '\\n'
 #       #   multiple_lines_delimiterプロパティで変更可能
 #       #
-#       >>> z = csv.str2csv("""
+#       >>> z = csv.csv2tda("""
 #       Name, Born, Occupation
 #       Graham\\nArthur\\nChapman, 1941, Comedian\\nwriter\\nactor
 #       John\\nMarwood\\nCleese, 1939, Actor\\nvoice actor\\ncomedian\\nscreenwriter\\nproducer
 #       Michael\\nEdward\\nPalin, 1943, Actor\\nwriter\\ntelevision\\npresenter\\ncomedian
 #       """)
 #       >>> 
+#       >>> z.trim() #空の行、空の列を削除
 #       >>> z.header_idx = 0 #ヘッダーのインデックスを設定
 #       >>> z.data_row_range = slice(1, None) #データ範囲を設定
-#       >>> z.trim() #空の行、空の列を削除
 #       >>> z.print2()
 #       +--------+------+------------+
 #       |Name    |Born  |Occupation  |
@@ -635,7 +639,7 @@
 #       +------------------------+------+----------------------------------------------------+
 #       
 #       
-#       >>> t = csv.str2csv("""
+#       >>> t = csv.csv2tda("""
 #       hoge, fuga, HOGE, FUGA
 #       a,b,c,d
 #       123,12345,1234567,123456789
@@ -648,7 +652,7 @@
 #        123, 12_345, 1_234_567, 123_456_789
 #       
 #
-#       #列のインデックスを指定してcsvデータを再構築できる
+#       #列のインデックスを指定してTwoDimArrayを再構築できる
 #       >>> t = t.arrange_columns(3,2,1,0)
 #       >>> t.print()
 #       FUGA       , HOGE     , fuga  , hoge
@@ -656,7 +660,7 @@
 #       123_456_789, 1_234_567, 12_345,  123
 #       
 #       
-#       #行のインデックスを指定してcsvデータを再構築できる
+#       #行のインデックスを指定してTwoDimArrayを再構築できる
 #       >>> t = t.arrange_rows(1,0,2)
 #       >>> t.print()
 #       d          , c        , b     , a   
@@ -665,10 +669,10 @@
 #       
 #
 #----------------------------------------------------------------------------------------------------
-#       #fillメソッド、map_fieldメソッド、research_field、csv2list、counter_columnメソッドの使用例
-#       #2次元配列からcsvデータ作成
+#       #fillメソッド、map_fieldメソッド、research_field、tda2list、counter_columnメソッドの使用例
+#       #2次元配列からTwoDimArray作成
 #       #
-#       >>> m = csv.csv([[1],[1,2],[1,2,3],[1,2,3,4],[1,2,3],[1,2],[1]])
+#       >>> m = csv.TwoDimArray([[1],[1,2],[1,2,3],[1,2,3,4],[1,2,3],[1,2],[1]])
 #       >>> m.print()
 #       1
 #       1, 2
@@ -716,7 +720,7 @@
 #       
 #       
 #       #4列のデータを6列に変更する
-#       >>> m4 = csv.list2csv(m2.csv2list(), 6)
+#       >>> m4 = csv.list2tda(m2.tda2list(), 6)
 #       >>> m4.print()
 #       1, 0, 0, 0, 1, 2
 #       0, 0, 2, 4, 6, 0
@@ -731,14 +735,14 @@
 #       
 #       
 #----------------------------------------------------------------------------------------------------
-#       #辞書からcsvデータを作成することも可能
+#       #辞書からTwoDimArrayを作成することも可能
 #       #
 #       #   辞書の各アイテムは列となる
 #       #
 #       >>> import numpy as np
 #       >>> 
 #       >>> d= {'NAME': list('ABCDEFG'), 'VALUE_1': np.random.randn(7), 'VALUE_2': np.random.randn(7)}
-#       >>> h = csv.dict2csv(d)
+#       >>> h = csv.dict2tda(d)
 #       >>> h.print()
 #       NAME, VALUE_1, VALUE_2
 #       A   ,    0.40,    1.63
@@ -999,7 +1003,7 @@
 #       #
 #       #   print_contextmanagerプロパティにcontextmanager用の関数を設定することで前後処理を簡単に追加できる
 #       #
-#       >>> n = csv.csv([[i for i in range(1,j)] for j in range(2,7)])
+#       >>> n = csv.TwoDimArray([[i for i in range(1,j)] for j in range(2,7)])
 #       >>> n.fill(0)
 #       >>> n.print2()
 #       +--+--+--+--+--+
@@ -1014,7 +1018,7 @@
 #       | 1| 2| 3| 4| 5|
 #       +--+--+--+--+--+
 #       >>>
-#       >>> def hoge(csv_self): #csvインスタンスを受け取る関数を定義する
+#       >>> def hoge(tda_self): #TwoDimArrayインスタンスを受け取る関数を定義する
 #       	print('START')
 #       	yield
 #       	print('END')
@@ -1038,8 +1042,8 @@
 #       >>>
 #
 #
-#       #print_contextmanagerプロパティに設定する関数はcsv.print_contextmanagerクラスに幾つか用意されている
-#       >>> n.print_contextmanager = csv.print_contextmanager.aggregate(sum) #各行列の合計値を追加表示する
+#       #print_contextmanagerプロパティに設定する関数はcsv.Print_contextmanagerクラスに幾つか用意されている
+#       >>> n.print_contextmanager = csv.Print_contextmanager.aggregate(sum) #各行列の合計値を追加表示する
 #       >>> n.print2()
 #       +--+--+--+--+--+--+
 #       | 1| 0  0  0  0| 1|
@@ -1055,13 +1059,13 @@
 #       | 5| 8| 9| 8| 5|35|
 #       +--+--+--+--+--+--+
 #       Add aggregate: sum
-#       >>> n.csv
+#       >>> n.data
 #       [[1, 0, 0, 0, 0], [1, 2, 0, 0, 0], [1, 2, 3, 0, 0], [1, 2, 3, 4, 0], [1, 2, 3, 4, 5]] #データは元のまま
 #       >>>
 #
 #
 #       #各列の合計値を追加表示する
-#       >>> n.print_contextmanager = csv.print_contextmanager.aggregate_col(sum)
+#       >>> n.print_contextmanager = csv.Print_contextmanager.aggregate_col(sum)
 #       >>> n.print2()
 #       +--+--+--+--+--+
 #       | 1| 0  0  0  0|
@@ -1077,7 +1081,7 @@
 #       | 5| 8| 9| 8| 5|
 #       +--+--+--+--+--+
 #       Add aggregate_col: sum
-#       >>> n.csv
+#       >>> n.data
 #       [[1, 0, 0, 0, 0], [1, 2, 0, 0, 0], [1, 2, 3, 0, 0], [1, 2, 3, 4, 0], [1, 2, 3, 4, 5]] #データは元のまま
 #       >>>
 #       >>> n.data_row_range = slice(1, -1) #データ範囲を変更(最初と最後の行は無視される)
@@ -1118,7 +1122,7 @@
 #       #   データ内にブランク行があったり、一部のデータが欠けている場合は集計の邪魔になるためデータを整える必要があった
 #       #   この問題を解決するために集計関数を「目的のデータだけ受け取るラッパー関数にする」機能が用意されている
 #       #
-#       >>> n = csv.csv([[i for i in range(1,j)] for j in range(2,7)])
+#       >>> n = csv.TwoDimArray([[i for i in range(1,j)] for j in range(2,7)])
 #       >>> n.fill()
 #       >>> n.print2() #欠損データ(空フィールド)がある
 #       +--+--+--+--+--+
@@ -1133,7 +1137,7 @@
 #       | 1| 2| 3| 4| 5|
 #       +--+--+--+--+--+
 #       >>> 
-#       >>> n.print_contextmanager = csv.print_contextmanager.aggregate(sum)
+#       >>> n.print_contextmanager = csv.Print_contextmanager.aggregate(sum)
 #       >>> n.print2() #合計値を集計できるのは欠損データが無い行列だけ
 #       +--+--+--+--+--+--+
 #       | 1|              |
@@ -1151,9 +1155,9 @@
 #       Add aggregate: sum
 #
 #
-#       #csv.wrapper.arg_of_numlistで集計関数sumをラップして数字だけが渡るようにする
-#       >>> sum_nums = csv.wrapper.arg_of_numlist(sum)
-#       >>> n.print_contextmanager = csv.print_contextmanager.aggregate(sum_nums)
+#       #csv.Wrapper.arg_of_numlistで集計関数sumをラップして数字だけが渡るようにする
+#       >>> sum_nums = csv.Wrapper.arg_of_numlist(sum)
+#       >>> n.print_contextmanager = csv.Print_contextmanager.aggregate(sum_nums)
 #       >>> n.print2() #空データが無視されて各行列の合計値を集計できる
 #       +--+--+--+--+--+--+
 #       | 1|           | 1|
@@ -1172,12 +1176,12 @@
 #       
 #       
 #----------------------------------------------------------------------------------------------------
-#       #csvデータの回転
+#       #TwoDimArrayの回転
 #       #
-#       #   csvデータを左右に45度、90度毎に回転させるメソッドが用意されている
+#       #   TwoDimArrayを左右に45度、90度毎に回転させるメソッドが用意されている
 #       #   rotate_l45, rotate_r45, rotate_l90, rotate_r90
 #       #
-#       >>> r = csv.csv([[1,2,3], [4,5,6], [7,8,9]])
+#       >>> r = csv.TwoDimArray([[1,2,3], [4,5,6], [7,8,9]])
 #       >>> r.border_grouping = False
 #       >>> r.print2()
 #       +--+--+--+
@@ -1211,12 +1215,12 @@
 #       
 #       
 #----------------------------------------------------------------------------------------------------
-#       #csvデータの表示を他のアプリケーションで行う
+#       #TwoDimArrayの表示を他のアプリケーションで行う
 #       #
 #       #   IDLEやターミナルなどは横スクロール機能が無いため、csvの列データが多すぎると表示が折り返されて正常に表示できない
 #       #   この問題を解決するために、print関連のメソッドの出力をファイルに保存する機能が用意されている
 #       #   このファイルを横スクロールやズームなどの機能を備えたアプリケーションで開いておけば
-#       #   ファイルの更新のたびにアプリケーションの表示を更新するだけでcsvデータを確認できる
+#       #   ファイルの更新のたびにアプリケーションの表示を更新するだけでTwoDimArrayを確認できる
 #       #
 #       #   set_print_fileメソッドでprint関連のメソッドの出力を保存するファイルを指定する
 #       #   set_print_fileメソッドを呼び出すと設定したファイルが関連付けされたアプリケーションで開く(Windowsのみ)
@@ -1252,11 +1256,98 @@
 #       +--------+------------+------------+------------+------+----------+----------+----------+
 #
 #       
-
-__all__ = ['csv', 'print_contextmanager', 'wrapper', 'magic', #class
-           'load', 'str2csv', 'list2csv', 'dict2csv', 'str2list', 'list2str', 'row2column', 'chk_border', #public function
+#----------------------------------------------------------------------------------------------------
+#       #魔方陣の作成
+#       #   任意のサイズの魔方陣を作成できる
+#       #   作成した魔方陣はis_magicメソッドで縦・横・対角線の数字の合計を確認できる
+#       #
+#       >>>m = csv.Magic.magic(10)
+#       >>>m.print2()
+#       +--+--+--+--+--+--+--+--+--+----+
+#       | 1|92|93| 7| 6| 5|94|98|99|  10|
+#       +--+--+--+--+--+--+--+--+--+----+
+#       |20|12|83|84|16|85|87|88|19|  11|
+#       +--+--+--+--+--+--+--+--+--+----+
+#       |30|29|23|74|75|76|77|28|22|  71|
+#       +--+--+--+--+--+--+--+--+--+----+
+#       |61|39|38|34|65|66|37|33|62|  70|
+#       +--+--+--+--+--+--+--+--+--+----+
+#       |51|52|48|47|45|46|44|53|59|  60|
+#       +--+--+--+--+--+--+--+--+--+----+
+#       |41|49|58|57|55|56|54|43|42|  50|
+#       +--+--+--+--+--+--+--+--+--+----+
+#       |40|69|68|64|35|36|67|63|32|  31|
+#       +--+--+--+--+--+--+--+--+--+----+
+#       |80|79|73|24|26|25|27|78|72|  21|
+#       +--+--+--+--+--+--+--+--+--+----+
+#       |90|82|13|17|86|15|14|18|89|  81|
+#       +--+--+--+--+--+--+--+--+--+----+
+#       |91| 2| 8|97|96|95| 4| 3| 9| 100|
+#       +--+--+--+--+--+--+--+--+--+----+
+#
+#       #魔方陣の確認
+#       >>>csv.Magic.is_magic(m.data)
+#       natural_num : True
+#       row_sum     : 505
+#       col_sum     : 505
+#       slash_sum   : 505
+#       bslash_sum  : 505
+#       True
+#
+#
+#----------------------------------------------------------------------------------------------------
+#       #pandasのDataFrameをTwoDimArrayに変換
+#       #   TwoDimArrayのprint2関数で見やすくなる
+#       #
+#       >>>import pandas as pd
+#       >>>df = pd.DataFrame({
+#              '名前': ['佐藤', '斎藤', '鈴木', '田中'],
+#              '年齢': [21, 30, 45, 16],
+#              '住所': ['東京都', '岐阜県', '埼玉県', '大阪'],
+#              '血液型': ['A', 'AB', 'O', 'O'],
+#              'レベル': [6, 7, 5, 9],
+#              'ポイント': [2900, 3400, 2500, 5100],
+#          })
+#       
+#       >>>df
+#          名前  年齢   住所 血液型  レベル  ポイント
+#       0  佐藤  21  東京都   A    6  2900
+#       1  斎藤  30  岐阜県  AB    7  3400
+#       2  鈴木  45  埼玉県   O    5  2500
+#       3  田中  16   大阪   O    9  5100
+#       
+#       >>>csv.df2tda(df).print2()
+#       +----+----+------+------+------+--------+
+#       |名前|年齢|住所  |血液型|レベル|ポイント|
+#       +----+----+------+------+------+--------+
+#       |佐藤|  21|東京都|A     |     6|   2_900|
+#       +----+----+------+------+------+--------+
+#       |斎藤|  30|岐阜県|AB    |     7|   3_400|
+#       +----+----+------+------+------+--------+
+#       |鈴木|  45|埼玉県|O     |     5|   2_500|
+#       +----+----+------+      +------+--------+
+#       |田中|  16|大阪  |O     |     9|   5_100|
+#       +----+----+------+------+------+--------+
+#       
+#       >>>csv.df2tda(df, index=True).print2()
+#       +--+----+----+------+------+------+--------+
+#       |  |名前|年齢|住所  |血液型|レベル|ポイント|
+#       +--+----+----+------+------+------+--------+
+#       | 0|佐藤|  21|東京都|A     |     6|   2_900|
+#       +--+----+----+------+------+------+--------+
+#       | 1|斎藤|  30|岐阜県|AB    |     7|   3_400|
+#       +--+----+----+------+------+------+--------+
+#       | 2|鈴木|  45|埼玉県|O     |     5|   2_500|
+#       +--+----+----+------+      +------+--------+
+#       | 3|田中|  16|大阪  |O     |     9|   5_100|
+#       +--+----+----+------+------+------+--------+
+#       
+#       
+#----------------------------------------------------------------------------------------------------
+__all__ = ['TwoDimArray', 'Print_contextmanager', 'Wrapper', 'Magic', #class
+           'load', 'csv2tda', 'df2tda', 'list2tda', 'dict2tda', 'str2list', 'list2str', 'row2column', 'chk_border', #public function
            ]
-__version__ = '3.2.4'
+__version__ = '3.3.0'
 __author__ = 'ShiraiTK'
 
 from collections import Counter, defaultdict
@@ -1330,24 +1421,24 @@ def add_print_contextmanager(func):
     return wrapper
 
 #------------------------------
-# print_contextmanagerクラス
+# Print_contextmanagerクラス
 #------------------------------
-class print_contextmanager(object):
+class Print_contextmanager(object):
     @staticmethod
     def aggregate(func=None):
         """
         funcで集計した各行と各列の集計値をprin関連メソッド表示時に追加表示する
         """
-        @functools.wraps(print_contextmanager.aggregate)
-        def contextmanager_func(csv_self):
-            column = csv_self.map_rows(func)
-            if csv_self.header_idx is not None:
-                column[csv_self.header_idx] = f'{func.__name__}' #ヘッダー位置に情報付加
-            csv_self.add_column(None, column)
-            csv_self.csv.append(csv_self.map_columns(func))
+        @functools.wraps(Print_contextmanager.aggregate)
+        def contextmanager_func(tda_self):
+            column = tda_self.map_rows(func)
+            if tda_self.header_idx is not None:
+                column[tda_self.header_idx] = f'{func.__name__}' #ヘッダー位置に情報付加
+            tda_self.add_column(None, column)
+            tda_self.data.append(tda_self.map_columns(func))
             yield
-            del(csv_self.csv[-1])
-            csv_self.del_column(-1)
+            del(tda_self.data[-1])
+            tda_self.del_column(-1)
             print(f'Add aggregate: {func.__name__}')
         return contextmanager_func
 
@@ -1356,14 +1447,14 @@ class print_contextmanager(object):
         """
         funcで集計した各行の集計値をprin関連メソッド表示時に追加表示する
         """
-        @functools.wraps(print_contextmanager.aggregate_row)
-        def contextmanager_func(csv_self):
-            column = csv_self.map_rows(func)
-            if csv_self.header_idx is not None:
-                column[csv_self.header_idx] = f'{func.__name__}' #ヘッダー位置に情報付加
-            csv_self.add_column(None, column)
+        @functools.wraps(Print_contextmanager.aggregate_row)
+        def contextmanager_func(tda_self):
+            column = tda_self.map_rows(func)
+            if tda_self.header_idx is not None:
+                column[tda_self.header_idx] = f'{func.__name__}' #ヘッダー位置に情報付加
+            tda_self.add_column(None, column)
             yield
-            csv_self.del_column(-1)
+            tda_self.del_column(-1)
             print(f'Add aggregate_row: {func.__name__}')
         return contextmanager_func
 
@@ -1372,11 +1463,11 @@ class print_contextmanager(object):
         """
         funcで集計した各列の集計値をprin関連メソッド表示時に追加表示する
         """
-        @functools.wraps(print_contextmanager.aggregate_col)
-        def contextmanager_func(csv_self):
-            csv_self.csv.append(csv_self.map_columns(func))
+        @functools.wraps(Print_contextmanager.aggregate_col)
+        def contextmanager_func(tda_self):
+            tda_self.data.append(tda_self.map_columns(func))
             yield
-            del(csv_self.csv[-1])
+            del(tda_self.data[-1])
             print(f'Add aggregate_col: {func.__name__}')
         return contextmanager_func
 
@@ -1386,41 +1477,41 @@ class print_contextmanager(object):
         header_fieldで指定した列を集計対象とし、
         funcで集計した各行と各列の集計値をprin関連メソッド表示時に追加表示する
         """
-        @functools.wraps(print_contextmanager.aggregate_line)
-        def contextmanager_func(csv_self):
-            if not csv_self._exists_header():
+        @functools.wraps(Print_contextmanager.aggregate_line)
+        def contextmanager_func(tda_self):
+            if not tda_self._exists_header():
                 yield
                 print(f"Can't add aggregate_line: {func.__name__}({header_field})")
             else:
-                idx = csv_self[header_field]
-                start = csv_self.data_row_range.start
-                stop = csv_self.data_row_range.stop
-                line = [csv_self.split_multiplelines(field) if isinstance(field, str) and csv_self.multiple_lines else [field]
-                        for field in csv_self.get_column(idx)[start:stop]]
+                idx = tda_self[header_field]
+                start = tda_self.data_row_range.start
+                stop = tda_self.data_row_range.stop
+                line = [tda_self.split_multiplelines(field) if isinstance(field, str) and tda_self.multiple_lines else [field]
+                        for field in tda_self.get_column(idx)[start:stop]]
 
                 #追加する列
-                top = ['' for _ in range(len(csv_self.csv[0:start]))]
-                bottom = [] if stop is None else ['' for _ in range(len(csv_self.csv[stop:]))]
+                top = ['' for _ in range(len(tda_self.data[0:start]))]
+                bottom = [] if stop is None else ['' for _ in range(len(tda_self.data[stop:]))]
                 column = top + [func(field) for field in line] + bottom
-                column[csv_self.header_idx] = f'{func.__name__}({header_field})' #ヘッダー位置に情報付加
-                csv_self.add_column(None, column)
+                column[tda_self.header_idx] = f'{func.__name__}({header_field})' #ヘッダー位置に情報付加
+                tda_self.add_column(None, column)
 
                 #追加する行
-                row = ['' for _ in range(csv_self.shape()[1])]
+                row = ['' for _ in range(tda_self.shape()[1])]
                 agg = func(list(chain.from_iterable(line)))
                 row[idx] = agg
                 row[-1] = agg
-                csv_self.csv.append(row)
+                tda_self.data.append(row)
                 yield
-                del(csv_self.csv[-1])
-                csv_self.del_column(-1)
+                del(tda_self.data[-1])
+                tda_self.del_column(-1)
                 print(f'Add aggregate_line: {func.__name__}({header_field})')
         return contextmanager_func
 
 #------------------------------
-# wrapperクラス
+# Wrapperクラス
 #------------------------------
-class wrapper(object):
+class Wrapper(object):
     @staticmethod
     def non_error(func, err_value=''):
         """
@@ -1513,44 +1604,44 @@ class wrapper(object):
         return wrapper_func
 
 #------------------------------
-# magicクラス
+# Magicクラス
 #------------------------------
-class magic(object):
+class Magic(object):
     @staticmethod
-    def is_magic(csv_data, info={}, verbose=True):
+    def is_magic(tda_data, info={}, verbose=True):
         """
-        csv_dataが魔方陣か判定する
+        tda_dataが魔方陣か判定する
             info: 辞書を設定して呼び出せば通常より詳しい判定情報(magic_info)を渡す
             verbose: Trueならば通常より詳しい判定情報(magic_info)を表示する
         """
         magic_info = {'natural_num':False, 'row_sum':None, 'col_sum':None, 'slash_sum':None, 'bslash_sum':None}
 
-        #csv_dataが1から始まる連番かどうかをチェック
+        #tda_dataが1から始まる連番かどうかをチェック
         #数字以外のフィールド値は無視
-        csv_data_elements = sorted(i for i in set(chain.from_iterable(csv_data))
+        tda_data_elements = sorted(i for i in set(chain.from_iterable(tda_data))
                                    if isinstance(i,int) or isinstance(i,float))
-        if csv_data_elements == list(range(1, csv_data_elements[-1]+1)):
+        if tda_data_elements == list(range(1, tda_data_elements[-1]+1)):
             magic_info['natural_num'] = True
 
         #各行の合計値
-        sum_nums = wrapper.arg_of_numlist(sum)
-        row_sum = tuple(sum_nums(row) for row in csv_data)
+        sum_nums = Wrapper.arg_of_numlist(sum)
+        row_sum = tuple(sum_nums(row) for row in tda_data)
         set_row_sum = set(row_sum)
         if len(set_row_sum) == 1:
             row_sum = list(set_row_sum)[0] #全部同じ値なら1つにまとめる
         magic_info['row_sum'] = row_sum
 
         #各列の合計値
-        col_sum = tuple(sum_nums(col) for col in row2column(csv_data))
+        col_sum = tuple(sum_nums(col) for col in row2column(tda_data))
         set_col_sum = set(col_sum)
         if len(set_col_sum) == 1:
             col_sum = list(set_col_sum)[0] #全部同じ値なら1つにまとめる
         magic_info['col_sum'] = col_sum
 
         #対角線の合計値
-        csv_data_low_len = len(csv_data[0])
-        magic_info['slash_sum'] = sum_nums([csv_data[i][-i-1] for i in range(csv_data_low_len)])
-        magic_info['bslash_sum'] = sum_nums([csv_data[i][i] for i in range(csv_data_low_len)])
+        tda_data_low_len = len(tda_data[0])
+        magic_info['slash_sum'] = sum_nums([tda_data[i][-i-1] for i in range(tda_data_low_len)])
+        magic_info['bslash_sum'] = sum_nums([tda_data[i][i] for i in range(tda_data_low_len)])
 
         if isinstance(info, dict):
             info.update(magic_info) #info引数に辞書を設定して本関数を呼び出せばmagic_infoを渡す
@@ -1574,16 +1665,16 @@ class magic(object):
             return #3以下の数字は無視
 
         if magic_num % 2 == 0:
-            return magic._even_magic(magic_num)
+            return Magic._even_magic(magic_num)
         else:
-            return magic._odd_magic(magic_num)
+            return Magic._odd_magic(magic_num)
 
     @staticmethod
     def _odd_magic(odd_number=3):
         """
         奇数辺の魔方陣を作成する
         """
-        m = list2csv(list(range(1, odd_number**2+1)), odd_number)
+        m = list2tda(list(range(1, odd_number**2+1)), odd_number)
         m.rotate_r45()
 
         center_idx = m._row_center()
@@ -1593,11 +1684,11 @@ class magic(object):
              for idx,(lst1_data,lst2_data) in enumerate(zip(lst1, lst2))]
 
         def puzzle():
-            piece_top = m.csv[:extra]
-            piece_btm = m.csv[-extra:]
-            m.csv = m.csv[extra:-extra]
-            area_top = m.csv[:extra]
-            area_btm = m.csv[-extra:]
+            piece_top = m.data[:extra]
+            piece_btm = m.data[-extra:]
+            m.data = m.data[extra:-extra]
+            area_top = m.data[:extra]
+            area_btm = m.data[-extra:]
             [marge(lst1, lst2) for area, piece in [(area_btm, piece_top), (area_top, piece_btm)] for lst1, lst2 in zip(area, piece)]
 
         puzzle()
@@ -1608,15 +1699,15 @@ class magic(object):
         return m
 
     @staticmethod
-    def _flat(csv_data):
+    def _flat(tda_data):
         """
-        csv_dataの縦横の合計値の差異が少なくなるように整える
+        tda_dataの縦横の合計値の差異が少なくなるように整える
         """
-        m = csv(csv_data)
+        m = TwoDimArray(tda_data)
         m.row2column()
-        m.csv = [row if row_idx%2==0 else [i for i in row[::-1]] for row_idx, row in enumerate(m.csv)]
+        m.data = [row if row_idx%2==0 else [i for i in row[::-1]] for row_idx, row in enumerate(m.data)]
         #m.print2() ###
-        #magic.is_magic(m.csv) ###
+        #Magic.is_magic(m.data) ###
         return m
 
     @staticmethod
@@ -1624,13 +1715,13 @@ class magic(object):
         """
         偶数辺の魔方陣を作成する
         """
-        m = list2csv(list(range(1, even_number**2+1)), even_number)
+        m = list2tda(list(range(1, even_number**2+1)), even_number)
 
-        #csvデータをフラット化
+        #TwoDimArrayをフラット化
         magic_info = {'slash_sum':True, 'bslash_sum':False} #値はダミー
         while magic_info['slash_sum'] != magic_info['bslash_sum']:
-            m = magic._flat(m.csv)
-            magic.is_magic(m.csv, magic_info, verbose=False)
+            m = Magic._flat(m.data)
+            Magic.is_magic(m.data, magic_info, verbose=False)
 
         #対角線を含まない各斜め要素を直行する対角軸で反転
         slash = m.get_slash() #対角線(スラッシュ)
@@ -1642,9 +1733,9 @@ class magic(object):
         bslash_stripe.invert_slash()
 
         m = m.get_diagonal() + slash_stripe + bslash_stripe
-        if magic.is_magic(m.csv, magic_info, verbose=False): #魔方陣になっていれば完了
+        if Magic.is_magic(m.data, magic_info, verbose=False): #魔方陣になっていれば完了
             return m
-        #m.print2(); (m-m.get_diagonal()).print2(); magic.is_magic(m.csv) ###
+        #m.print2(); (m-m.get_diagonal()).print2(); Magic.is_magic(m.data) ###
 
         #各行列の合計値を揃える
         #   8x8
@@ -1672,12 +1763,12 @@ class magic(object):
         def align_total_value(sum_info):
             for row_idx, row_sum in enumerate(sum_info[:center]):
                 difference = abs(total_value - row_sum)
-                #print(f'row_idx: {row_idx}, row_sum: {row_sum}, difference: {difference}, m.csv[row_idx]: {m.csv[row_idx]}')###
+                #print(f'row_idx: {row_idx}, row_sum: {row_sum}, difference: {difference}, m.data[row_idx]: {m.data[row_idx]}')###
                 l = list(chain.from_iterable(zip(indexs[:center][:row_idx][::-1] + indexs[:center][row_idx:][::-1],
                                                  indexs[center:][-row_idx:] + indexs[center:][:-row_idx])))
-                num = difference // abs(m.csv[row_idx][l[0]] - m.csv[-row_idx-1][l[0]]) #入れ替える数
+                num = difference // abs(m.data[row_idx][l[0]] - m.data[-row_idx-1][l[0]]) #入れ替える数
                 for col_idx in l[:num]:
-                    m.csv[row_idx][col_idx], m.csv[-row_idx-1][col_idx] = m.csv[-row_idx-1][col_idx], m.csv[row_idx][col_idx]
+                    m.data[row_idx][col_idx], m.data[-row_idx-1][col_idx] = m.data[-row_idx-1][col_idx], m.data[row_idx][col_idx]
 
         #各行の合計値を揃える
         align_total_value(magic_info['row_sum'])
@@ -1687,13 +1778,13 @@ class magic(object):
         align_total_value(magic_info['col_sum'])
         m.row2column()
 
-        #magic.is_magic(m.csv)
+        #Magic.is_magic(m.data)
         return m
 
 #------------------------------
-# csvクラス
+# TwoDimArrayクラス
 #------------------------------
-class csv(object):
+class TwoDimArray(object):
     _DEFAULT_NAME = ''
     _DEFAULT_HEADER_IDX = None
     _DEFAULT_DATA_ROW_RANGE = slice(0, None)
@@ -1711,19 +1802,19 @@ class csv(object):
     _DEFAULT_PRINT_FILE = {'file':None, 'encoding':None}
     _DEFAULT_PRINT_CONTEXTMANAGER = None
 
-    def __init__(self, csv_data=None):
+    def __init__(self, tda_data=None):
         """
-        csv_dataはリストの2次元配列( csv_dataの最小構成は[['']] )
+        tda_dataはリストの2次元配列( tda_dataの最小構成は[['']] )
         """
-        if csv_data is None:
-            csv_data = [['']]
+        if tda_data is None:
+            tda_data = [['']]
 
-        #csv_dataがリストの2次元配列かチェック
-        if (isinstance(csv_data, list) and bool(csv_data) #csv_dataはリストで何か入っている
-            and isinstance(csv_data[0], list) and bool(csv_data[0])): #入ってるのはリストで、さらに何か(データ)入っていればOK
-            self.csv = csv_data
+        #tda_dataがリストの2次元配列かチェック
+        if (isinstance(tda_data, list) and bool(tda_data) #tda_dataはリストで何か入っている
+            and isinstance(tda_data[0], list) and bool(tda_data[0])): #入ってるのはリストで、さらに何か(データ)入っていればOK
+            self.data = tda_data
         else:
-            raise ValueError(f"csv()の引数csv_dataはリストの2次元配列を期待しています(csv_dataの最小構成は[['']]): {repr(csv_data)}")
+            raise ValueError(f"TwoDimArray()の引数tda_dataはリストの2次元配列を期待しています(tda_dataの最小構成は[['']]): {repr(tda_data)}")
 
         self.reset_property() #プロパティの初期設定
 
@@ -1731,27 +1822,27 @@ class csv(object):
         """
         プロパティをデフォルト値に戻す
         """
-        self.name = csv._DEFAULT_NAME #csvデータの名前
-        self.header_idx = csv._DEFAULT_HEADER_IDX #ヘッダーのインデックス
-        self.data_row_range = csv._DEFAULT_DATA_ROW_RANGE #csvデータでヘッダー＆フッターを含まないデータ範囲(sliceで設定)
-        self.print2_border = csv._DEFAULT_PRINT2_BORDER #print2メソッドで使用するborder_pattern
-        self.print_idx2_border = csv._DEFAULT_PRINT_IDX2_BORDER #print_idx2メソッドで使用するborder_pattern
-        self.border_grouping = csv._DEFAULT_BORDER_GROUPING #Trueにすると枠のグループ化機能が有効になる
+        self.name = TwoDimArray._DEFAULT_NAME #TwoDimArrayの名前
+        self.header_idx = TwoDimArray._DEFAULT_HEADER_IDX #ヘッダーのインデックス
+        self.data_row_range = TwoDimArray._DEFAULT_DATA_ROW_RANGE #TwoDimArrayでヘッダー＆フッターを含まないデータ範囲(sliceで設定)
+        self.print2_border = TwoDimArray._DEFAULT_PRINT2_BORDER #print2メソッドで使用するborder_pattern
+        self.print_idx2_border = TwoDimArray._DEFAULT_PRINT_IDX2_BORDER #print_idx2メソッドで使用するborder_pattern
+        self.border_grouping = TwoDimArray._DEFAULT_BORDER_GROUPING #Trueにすると枠のグループ化機能が有効になる
 
-        self.multiple_lines = csv._DEFAULT_MULTIPLE_LINES #Trueにするとフィールド値をmultiple_lines_delimiterで枠内改行して表示する
-        self.multiple_lines_delimiter = csv._DEFAULT_MULTIPLE_LINES_DELIMITER #フィールド値をmultiple-linesに変換するデリミタ
+        self.multiple_lines = TwoDimArray._DEFAULT_MULTIPLE_LINES #Trueにするとフィールド値をmultiple_lines_delimiterで枠内改行して表示する
+        self.multiple_lines_delimiter = TwoDimArray._DEFAULT_MULTIPLE_LINES_DELIMITER #フィールド値をmultiple-linesに変換するデリミタ
 
-        self.grouping_opt = csv._DEFAULT_GROUPING_OPT #Trueにすると数字の可読性があがる(千倍ごとの数字の区切り文字にアンダースコアを使う: 12345 -> 12_345)
-        self.precision = csv._DEFAULT_PRECISION #floatの精度(小数点以下の桁数)
-        self._display_delimiter = csv._DEFAULT_DISPLAY_DELIMITER #表示用デリミタ
-        self._head = csv._DEFAULT_HEAD #print関数で表示するself.csvの先頭からの行数
-        self.print_file = csv._DEFAULT_PRINT_FILE.copy() #設定したファイルにprint関連メソッドの出力が上書き保存される
-        self.print_contextmanager = csv._DEFAULT_PRINT_CONTEXTMANAGER #print関連メソッドの前後処理を行うcontextmanagerを登録できる(contextmanagerにはselfが渡される)
+        self.grouping_opt = TwoDimArray._DEFAULT_GROUPING_OPT #Trueにすると数字の可読性があがる(千倍ごとの数字の区切り文字にアンダースコアを使う: 12345 -> 12_345)
+        self.precision = TwoDimArray._DEFAULT_PRECISION #floatの精度(小数点以下の桁数)
+        self._display_delimiter = TwoDimArray._DEFAULT_DISPLAY_DELIMITER #表示用デリミタ
+        self._head = TwoDimArray._DEFAULT_HEAD #print関数で表示するself.dataの先頭からの行数
+        self.print_file = TwoDimArray._DEFAULT_PRINT_FILE.copy() #設定したファイルにprint関連メソッドの出力が上書き保存される
+        self.print_contextmanager = TwoDimArray._DEFAULT_PRINT_CONTEXTMANAGER #print関連メソッドの前後処理を行うcontextmanagerを登録できる(contextmanagerにはselfが渡される)
 
     def _copy_property(self, src):
         """
-        src.csv以外のプロパティをsrcからコピーする
-            filterメソッドやmap_fieldメソッドなど、処理結果を新しいcsvインスタンスとして返すメソッドで使用する
+        src.data以外のプロパティをsrcからコピーする
+            filterメソッドやmap_fieldメソッドなど、処理結果を新しいTwoDimArrayインスタンスとして返すメソッドで使用する
         """
         self.name = src.name
         self.header_idx = src.header_idx
@@ -1786,10 +1877,10 @@ class csv(object):
             return self.get_header_idx(header_value)
 
     def _row_len(self):
-        return len(self.csv)
+        return len(self.data)
 
     def _col_len(self):
-        return len(self.csv[0])
+        return len(self.data[0])
 
     def _row_center(self):
         return self._row_len()//2
@@ -1801,20 +1892,20 @@ class csv(object):
     # 演算子
     #------------------------------
     def __add__(self, other):
-        return csv._cal_csv(self, other, lambda x,y: x+y)
+        return TwoDimArray._cal_tda(self, other, lambda x,y: x+y)
 
     def __sub__(self, other):
-        return csv._cal_csv(self, other, lambda x,y: x-y)
+        return TwoDimArray._cal_tda(self, other, lambda x,y: x-y)
 
     @staticmethod
-    def _cal_csv(csv1, csv2, operator):
-        if all(isinstance(i, csv) for i in (csv1, csv2)):
-            csv_data = [[csv._cal_field(self_field, other_field, operator)
+    def _cal_tda(tda1, tda2, operator):
+        if all(isinstance(i, TwoDimArray) for i in (tda1, tda2)):
+            tda_data = [[TwoDimArray._cal_field(self_field, other_field, operator)
                         for self_field, other_field in zip_longest(self_row, other_row, fillvalue='')]
-                        for self_row, other_row in zip_longest(csv1.csv, csv2.csv, fillvalue='')]
-            new_csv = csv(csv_data)
-            new_csv._copy_property(csv1)
-            return new_csv
+                        for self_row, other_row in zip_longest(tda1.data, tda2.data, fillvalue='')]
+            new_tda = TwoDimArray(tda_data)
+            new_tda._copy_property(tda1)
+            return new_tda
 
     @staticmethod
     def _cal_field(field1, field2, operator):
@@ -1842,7 +1933,7 @@ class csv(object):
 
     def _sprint(self, head=None, tail=None, header_aligns=None, aligns=None, widths=None, _chk_multiple_lines=True):
         """
-        self.csvの行列文字列を返す
+        self.dataの行列文字列を返す
             head: 先頭からの行数を指定
             tail: 最後尾からの行数を指定
 
@@ -1859,20 +1950,20 @@ class csv(object):
     def _sprint_range(self, row_start_idx=0, row_end_idx=None, header_aligns=None, aligns=None, widths=None, _chk_multiple_lines=True):
         """
         指定された行範囲の文字列を返す
-            ※csvデータ文字列化の共通関数
+            ※TwoDimArray文字列化の共通関数
         """
         if self.multiple_lines and _chk_multiple_lines:
-            m_csv, _ = self._extend_multiple_lines()
-            csv = self if m_csv is None else m_csv
+            m_tda, _ = self._extend_multiple_lines()
+            tda = self if m_tda is None else m_tda
         else:
-            csv = self
+            tda = self
 
-        return csv._csv_string_format(row_start_idx=row_start_idx, row_end_idx=row_end_idx, header_aligns=header_aligns, aligns=aligns, widths=widths)
+        return tda._tda_string_format(row_start_idx=row_start_idx, row_end_idx=row_end_idx, header_aligns=header_aligns, aligns=aligns, widths=widths)
 
     @add_print_contextmanager
     def print(self, head=None, tail=None):
         """
-        self.csvを行列表示する
+        self.dataを行列表示する
         """
         with self._print_strings() as strings:
             strings.append(self._sprint(head=head, tail=tail))
@@ -1880,32 +1971,32 @@ class csv(object):
     @add_print_contextmanager
     def print2(self, head=None, tail=None):
         """
-        self.csvの行列を枠で囲んで見やすくして表示する
+        self.dataの行列を枠で囲んで見やすくして表示する
         """
-        wrap_csv = self.wrap_border(self.print2_border)
+        wrap_tda = self.wrap_border(self.print2_border)
         with self._print_strings() as strings:
             #multiple-linesの処理はwrap_borderメソッドで処理済み
-            strings.append(wrap_csv._sprint(head=head, tail=tail, _chk_multiple_lines=False))
+            strings.append(wrap_tda._sprint(head=head, tail=tail, _chk_multiple_lines=False))
 
     @add_print_contextmanager
     def print_idx(self, head=None, tail=None):
         """
-        self.csvに行と列のインデックス情報を付け加えて行列表示する
+        self.dataに行と列のインデックス情報を付け加えて行列表示する
         """
-        idx_csv = self._add_idx()
+        idx_tda = self._add_idx()
         with self._print_strings() as strings:
-            strings.append(idx_csv._sprint(head=head, tail=tail, aligns={0:'>'})) #文字列のインデックスを右寄りに配置
+            strings.append(idx_tda._sprint(head=head, tail=tail, aligns={0:'>'})) #文字列のインデックスを右寄りに配置
 
     @add_print_contextmanager
     def print_idx2(self, head=None, tail=None):
         """
-        self.csvに行と列のインデックス情報を付け加え、さらに枠で囲んで見やすくした行列を表示する
+        self.dataに行と列のインデックス情報を付け加え、さらに枠で囲んで見やすくした行列を表示する
         """
-        idx_csv = self._add_idx()
-        wrap_csv = idx_csv.wrap_border(idx_csv.print_idx2_border, aligns={0:'>'}) #文字列のインデックスを右寄りに配置
+        idx_tda = self._add_idx()
+        wrap_tda = idx_tda.wrap_border(idx_tda.print_idx2_border, aligns={0:'>'}) #文字列のインデックスを右寄りに配置
         with self._print_strings() as strings:
             #multiple-linesの処理はwrap_borderメソッドで処理済み
-            strings.append(wrap_csv._sprint(head=head, tail=tail, _chk_multiple_lines=False))
+            strings.append(wrap_tda._sprint(head=head, tail=tail, _chk_multiple_lines=False))
 
     @add_print_contextmanager
     def print_chg_format(self, head=None, tail=None, header_aligns=None, aligns=None, widths=None):
@@ -1919,7 +2010,7 @@ class csv(object):
     @add_print_contextmanager
     def print_range(self, row_start_idx=0, row_end_idx=None):
         """
-        self.csvを行列表示する
+        self.dataを行列表示する
             指定した行のインデックス範囲を表示する
         """
         with self._print_strings() as strings:
@@ -1927,10 +2018,10 @@ class csv(object):
 
     def _add_idx(self):
         """
-        行と列のインデックス表示のために、インデックス情報を加えたcsvインスタンスを返す
+        行と列のインデックス表示のために、インデックス情報を加えたTwoDimArrayインスタンスを返す
         (print_idxとprint_idx2の共通処理)
         """
-        columns = row2column(self.csv)
+        columns = row2column(self.data)
         columns.insert(0, [str(i) for i in range(len(columns[0]))]) #左端の列に文字列のインデックス追加
         columns.append([str(i) for i in range(len(columns[0]))]) #右端の列に文字列のインデックス追加
         rows = row2column(columns)
@@ -1940,54 +2031,54 @@ class csv(object):
         rows.insert(0, index) #先頭の行に文字列のインデックス追加
         rows.append(index) #最後尾の行に文字列のインデックス追加
 
-        idx_csv = csv(rows)
-        idx_csv._copy_property(self)
-        return idx_csv
+        idx_tda = TwoDimArray(rows)
+        idx_tda._copy_property(self)
+        return idx_tda
 
-    def _extend_multiple_lines(self, border_csv=None):
+    def _extend_multiple_lines(self, border_tda=None):
         """
-        self.csvの一行表現のmultiple-linesを複数行表現に展開したcsvインスタンスを返す(multiple-linesが無ければNoneを返す)
-            ・border_csv: self.csvを収められる枠パターンのcsvインスタンス
-                          指定すると複数行に展開されたcsvデータが収まる枠パターンのcsvインスタンスも返す
+        self.dataの一行表現のmultiple-linesを複数行表現に展開したTwoDimArrayインスタンスを返す(multiple-linesが無ければNoneを返す)
+            ・border_tda: self.dataを収められる枠パターンのTwoDimArrayインスタンス
+                          指定すると複数行に展開されたTwoDimArrayが収まる枠パターンのTwoDimArrayインスタンスも返す
                           (multiple-linesが無い、もしくは未指定ならばNoneを返す)
                             
-                            new_csv, _ = self._extend_multiple_lines()
-                            new_csv, new_p_csv = self._extend_multiple_lines(p_csv)
+                            new_tda, _ = self._extend_multiple_lines()
+                            new_tda, new_p_tda = self._extend_multiple_lines(p_tda)
         """
         multiple_lines_idxs = self.get_string_idx_all(self.multiple_lines_delimiter)
         if not multiple_lines_idxs:
             return (None, None)
         #print(f'multiple_lines_idxs: {multiple_lines_idxs}') ###
 
-        csv_data = copy.deepcopy(self.csv)
+        tda_data = copy.deepcopy(self.data)
         def field2multiple_lines(row_idx, col_idx): #一行表現のmultiple-linesを複数行表現(リスト)に変換
-            csv_data[row_idx][col_idx] = [_str2int_or_float(field) for field in csv_data[row_idx][col_idx].split(self.multiple_lines_delimiter)]
+            tda_data[row_idx][col_idx] = [_str2int_or_float(field) for field in tda_data[row_idx][col_idx].split(self.multiple_lines_delimiter)]
         [field2multiple_lines(row_idx, col_idx) for row_idx, col_idx in multiple_lines_idxs]
-        #print(f'csv_data: {csv_data}') ###
+        #print(f'tda_data: {tda_data}') ###
 
         increase_row = {}
         multiple_lines_row_idxs = sorted(set(row_idx for row_idx, col_idx in multiple_lines_idxs))
         def multiple_lines2zip_longest(row_idx): #multiple-linesのある行をmultiple-linesの行数に拡張
-            csv_data[row_idx] = [list(i) for i in #zip_longestでタプルになった要素をリストに戻す
-                    zip_longest(*[[field] if not isinstance(field, list) else field for field in csv_data[row_idx]],
-                    fillvalue='')]
-            increase_row[row_idx] = len(csv_data[row_idx])-1
+            tda_data[row_idx] = [list(i) for i in #zip_longestでタプルになった要素をリストに戻す
+                                 zip_longest(*[[field] if not isinstance(field, list) else field for field in tda_data[row_idx]],
+                                             fillvalue='')]
+            increase_row[row_idx] = len(tda_data[row_idx])-1
         [multiple_lines2zip_longest(row_idx) for row_idx in multiple_lines_row_idxs]
-        #print(f'csv_data: {csv_data}') ###
+        #print(f'tda_data: {tda_data}') ###
         #print(f'increase_row: {increase_row}') ###
         #print(f'multiple_lines_row_idxs: {multiple_lines_row_idxs}') ###
 
-        new_csv_data = []
-        [new_csv_data.extend(row_value) if row_idx in multiple_lines_row_idxs else new_csv_data.append(row_value)
-                for row_idx, row_value in enumerate(csv_data)]
-        #print(f'new_csv_data: {new_csv_data}') ###
-        new_csv = csv(new_csv_data)
-        new_csv._copy_property(self)
+        new_tda_data = []
+        [new_tda_data.extend(row_value) if row_idx in multiple_lines_row_idxs else new_tda_data.append(row_value)
+         for row_idx, row_value in enumerate(tda_data)]
+        #print(f'new_tda_data: {new_tda_data}') ###
+        new_tda = TwoDimArray(new_tda_data)
+        new_tda._copy_property(self)
 
-        if border_csv is not None:
-            #border_csv.print() ###
+        if border_tda is not None:
+            #border_tda.print() ###
             border_increase_row = dict([(row_idx*2+1, increase) for row_idx, increase in increase_row.items()])
-            border_data = copy.deepcopy(border_csv.csv)
+            border_data = copy.deepcopy(border_tda.data)
             def row_increase(row_idx):
                 spaces = tuple(' ' for _ in range(len(border_data[row_idx])))
                 border = tuple(border_data[row_idx])
@@ -1997,15 +2088,15 @@ class csv(object):
 
             new_border_data = []
             [new_border_data.extend(row_value) if row_idx in border_increase_row.keys() else new_border_data.append(row_value)
-                    for row_idx, row_value in enumerate(border_data)]
+             for row_idx, row_value in enumerate(border_data)]
             #print(f'border_data: {border_data}') ###
-            #b=csv(border_data);b._display_delimiter='';b.print() ###
-            new_border_csv = csv(new_border_data)
-            new_border_csv._copy_property(border_csv)
-            #new_border_csv.print() ###
-            return (new_csv, new_border_csv)
+            #b=TwoDimArray(border_data);b._display_delimiter='';b.print() ###
+            new_border_tda = TwoDimArray(new_border_data)
+            new_border_tda._copy_property(border_tda)
+            #new_border_tda.print() ###
+            return (new_tda, new_border_tda)
 
-        return (new_csv, None)
+        return (new_tda, None)
 
     @contextmanager
     def _print_strings(self):
@@ -2023,28 +2114,28 @@ class csv(object):
 
     def shape(self):
         """
-        csvデータの行と列の長さを返す
+        TwoDimArrayの行と列の長さを返す
         """
-        self.fill() #csvデータに欠損があれば埋める
+        self.fill() #TwoDimArrayに欠損があれば埋める
         return (self._row_len(), self._col_len())
 
     def counter_row(self, row_idx):
         """
         指定行(row_idx)のCounterを返す
         """
-        return Counter(self.csv[row_idx])
+        return Counter(self.data[row_idx])
 
     def counter_column(self, col_idx):
         """
         指定列(col_idx)のCounterを返す
         """
-        return Counter([self.csv[row_idx][col_idx] for row_idx in range(len(self.csv))])
+        return Counter([self.data[row_idx][col_idx] for row_idx in range(len(self.data))])
 
     def _fields_string_format(self, row_start_idx=0, row_end_idx=None, header_aligns=None, aligns=None, widths=None):
         """
-        self.csvの行列の各フィールドを文字列にして返す
+        self.dataの行列の各フィールドを文字列にして返す
             各列の文字列幅を均一にする(全角文字が混じっていてもズレません)
-            self.csvの行範囲[row_start_idx:row_end_idx]を指定可能
+            self.dataの行範囲[row_start_idx:row_end_idx]を指定可能
 
             各列の書式指定を個別に指定できる:
                 ・header_aligns: ヘッダーのalignを設定する辞書{列インデックス: align} (align: 左詰め='<'、右詰め='>', 中央寄せ='^')
@@ -2052,8 +2143,8 @@ class csv(object):
                 ・widths: 各列のwidthを設定する辞書{列インデックス: width}
             ※列インデックスで指定されていない他の全ての設定をNoneキーで設定できる
         """
-        csv_data = self.csv[row_start_idx:row_end_idx]
-        columns = row2column(csv_data)
+        tda_data = self.data[row_start_idx:row_end_idx]
+        columns = row2column(tda_data)
 
         #align設定
         col_aligns = ['' for _ in columns] #''はalign無し(デフォルトのalign設定が適用される)
@@ -2129,13 +2220,13 @@ class csv(object):
                 return str(field)
 
         return [[f'{get_data(col_data):{get_format(row_idx, col_idx, col_data)}}' for col_idx, col_data in enumerate(row_data)]
-                for row_idx, row_data in enumerate(csv_data)]
+                for row_idx, row_data in enumerate(tda_data)]
 
-    def _csv_string_format(self, row_start_idx=0, row_end_idx=None, header_aligns=None, aligns=None, widths=None):
+    def _tda_string_format(self, row_start_idx=0, row_end_idx=None, header_aligns=None, aligns=None, widths=None):
         """
-        self.csvの行列を文字列にして返す
+        self.dataの行列を文字列にして返す
             各列の文字列幅を均一にする(全角文字が混じっていてもズレません)
-            self.csvの行範囲[row_start_idx:row_end_idx]を指定可能
+            self.dataの行範囲[row_start_idx:row_end_idx]を指定可能
 
             各列の書式指定を個別に指定できる:
                 ・header_aligns: ヘッダーのalignを設定する辞書{列インデックス: align} (align: 左詰め='<'、右詰め='>', 中央寄せ='^')
@@ -2144,38 +2235,38 @@ class csv(object):
             ※列インデックスで指定されていない他の全ての設定をNoneキーで設定できる
         """
         if row_start_idx is not None:
-            remain_toplines_num = len(self.csv[:row_start_idx])
+            remain_toplines_num = len(self.data[:row_start_idx])
         else:
             remain_toplines_num = 0
 
         if row_end_idx is not None:
-            remain_bottomlines_num = len(self.csv[row_end_idx:])
+            remain_bottomlines_num = len(self.data[row_end_idx:])
         else:
             remain_bottomlines_num = 0
 
         fields_str = self._fields_string_format(row_start_idx=row_start_idx, row_end_idx=row_end_idx, header_aligns=header_aligns, aligns=aligns, widths=widths)
-        csv_str = '\n'.join([self._display_delimiter.join(row_data) for row_data in fields_str])
+        tda_str = '\n'.join([self._display_delimiter.join(row_data) for row_data in fields_str])
 
         if remain_toplines_num:
-            csv_str = f'↑(There are {remain_toplines_num} rows)\n' + csv_str
+            tda_str = f'↑(There are {remain_toplines_num} rows)\n' + tda_str
         if remain_bottomlines_num:
-            csv_str += f'\n↓(There are {remain_bottomlines_num} rows)'
+            tda_str += f'\n↓(There are {remain_bottomlines_num} rows)'
 
-        return csv_str
+        return tda_str
 
     #------------------------------
     # 保存
     #------------------------------
     def save(self, csv_file, mode='w', encoding=None, uniform=True):
         """
-        csvファイル(csv_file)にcsvデータ(self.csv)を保存する
+        csvファイル(csv_file)にTwoDimArray(self.data)を保存する
             uniform=True: 各列の文字幅を均一にする
         """
         with open(csv_file, mode, encoding=encoding) as f:
             if uniform:
-                f.write(self._sprint())
+                f.write(self._sprint()+'\n')
             else:
-                f.write('\n'.join([','.join(row) for row in _field2striped_str(self.csv)])+'\n')
+                f.write('\n'.join([','.join(row) for row in _field2striped_str(self.data)])+'\n')
 
     def set_print_file(self, f_name=None, encoding=None):
         """
@@ -2183,7 +2274,7 @@ class csv(object):
             Windowsの場合はOSに関連付けられたアプリケーションでファイルを開く処理も行う
         """
         if f_name is None and encoding is None:
-            self.print_file = csv._DEFAULT_PRINT_FILE.copy() #初期化
+            self.print_file = TwoDimArray._DEFAULT_PRINT_FILE.copy() #初期化
             return
 
         if os.path.exists(f_name):
@@ -2220,14 +2311,14 @@ class csv(object):
     #------------------------------
     def get_header(self):
         """
-        csvデータのヘッダーを返す
+        TwoDimArrayのヘッダーを返す
         """
         if self._exists_header():
-            return self.csv[self.header_idx]
+            return self.data[self.header_idx]
 
     def get_header_idx(self, value, start=None, stop=None):
         """
-        csvデータのヘッダーの中にvalueがあればそのインデックスを返す
+        TwoDimArrayのヘッダーの中にvalueがあればそのインデックスを返す
             self.get_header().index(value, start, stop)の結果を返す
         """
         if self._exists_header():
@@ -2237,7 +2328,7 @@ class csv(object):
 
     def get_header_value(self, idx):
         """
-        csvデータのヘッダーにインデックスでアクセスしてその値を返す
+        TwoDimArrayのヘッダーにインデックスでアクセスしてその値を返す
             self.get_header()[idx]の結果を返す
         """
         if self._exists_header():
@@ -2256,7 +2347,7 @@ class csv(object):
     #------------------------------
     def get_field_idx(self, value, row_idx=None, col_idx=None):
         """
-        csvデータの中にvalueがあればそのインデックスを返す(最初に見つけた1つを返す)
+        TwoDimArrayの中にvalueがあればそのインデックスを返す(最初に見つけた1つを返す)
             row_idx, col_idxで検索範囲を指定できる
             row_idx, col_idxはsliceも指定可能
         """
@@ -2265,7 +2356,7 @@ class csv(object):
 
     def get_field_idx_all(self, value, row_idx=None, col_idx=None):
         """
-        csvデータの中にvalueがあればそのインデックスを返す(見つけた全てを返す)
+        TwoDimArrayの中にvalueがあればそのインデックスを返す(見つけた全てを返す)
             row_idx, col_idxで検索範囲を指定できる
             row_idx, col_idxはsliceも指定可能
         """
@@ -2273,7 +2364,7 @@ class csv(object):
 
     def get_string_idx(self, string, row_idx=None, col_idx=None):
         """
-        csvデータの中にstringを含んだフィールドがあればそのインデックスを返す(最初に見つけた1つを返す)
+        TwoDimArrayの中にstringを含んだフィールドがあればそのインデックスを返す(最初に見つけた1つを返す)
             row_idx, col_idxで検索範囲を指定できる
             row_idx, col_idxはsliceも指定可能
         """
@@ -2282,7 +2373,7 @@ class csv(object):
 
     def get_string_idx_all(self, string, row_idx=None, col_idx=None):
         """
-        csvデータの中にstringを含んだフィールドがあればそのインデックスを返す(見つけた全てを返す)
+        TwoDimArrayの中にstringを含んだフィールドがあればそのインデックスを返す(見つけた全てを返す)
             row_idx, col_idxで検索範囲を指定できる
             row_idx, col_idxはsliceも指定可能
         """
@@ -2290,18 +2381,18 @@ class csv(object):
 
     def _get_field_idx(self, value, partial_match=False, row_idx=None, col_idx=None):
         """
-        csvデータの中にvalueがあればそのインデックスを返す(get_field_idxとget_field_idx_allの共通処理)
+        TwoDimArrayの中にvalueがあればそのインデックスを返す(get_field_idxとget_field_idx_allの共通処理)
             partial_match: Trueなら部分一致で判定(この場合はvalueは文字列であり、文字列のフィールドのみが対象となる)
                            Falseならば完全一致
             row_idx, col_idxで検索範囲を指定できる
             row_idx, col_idxはsliceも指定可能
         """
         if row_idx is None:
-            rows = enumerate(self.csv)
+            rows = enumerate(self.data)
         elif isinstance(row_idx, slice):
-            rows = enumerate(self.csv[row_idx], start=row_idx.start)
+            rows = enumerate(self.data[row_idx], start=row_idx.start)
         else:
-            rows = enumerate(self.csv[row_idx:row_idx+1], start=row_idx)
+            rows = enumerate(self.data[row_idx:row_idx+1], start=row_idx)
 
         if col_idx is None:
             cols = lambda row: enumerate(row)
@@ -2321,9 +2412,9 @@ class csv(object):
 
     def get_field_value(self, row_idx, col_idx):
         """
-        csvデータにインデックスでアクセスしてその値を返す
+        TwoDimArrayにインデックスでアクセスしてその値を返す
         """
-        value = self.csv[row_idx][col_idx]
+        value = self.data[row_idx][col_idx]
         return value
 
     def inquire_field_value(self, row_value, col_value):
@@ -2352,63 +2443,63 @@ class csv(object):
         """
         文字列フィールドの左右の空白を削除(strip)
         """
-        self.csv = _field2striped_str(self.csv)
+        self.data = _field2striped_str(self.data)
 
     def field2int(self):
         """
         フィールドをintに変換できたらintに変換する
         """
-        self.csv = [[_chg_int(field) for field in row] for row in self.csv]
+        self.data = [[_chg_int(field) for field in row] for row in self.data]
 
     def field2float(self):
         """
         フィールドをfloatに変換できたらfloatに変換する
         """
-        self.csv = [[_chg_float(field) for field in row] for row in self.csv]
+        self.data = [[_chg_float(field) for field in row] for row in self.data]
 
     def money2int(self):
         """
         フィールドの通貨文字列をintに変換できたらintに変換する
         """
-        self.csv = [[_chg_money2int(field) for field in row] for row in self.csv]
+        self.data = [[_chg_money2int(field) for field in row] for row in self.data]
 
     def money2float(self):
         """
         フィールドの通貨文字列をfloatに変換できたらfloatに変換する
         """
-        self.csv = [[_chg_money2float(field) for field in row] for row in self.csv]
+        self.data = [[_chg_money2float(field) for field in row] for row in self.data]
 
     def refresh_field(self):
         """
         各フィールドをリフレッシュさせる
             各フィールドを文字列に変換、文字列の左右の空白を削除(strip)、intに変換できる文字列はintに、floatに変換できる文字列はfloatに変換する
         """
-        self.csv = [[_str2int_or_float(field) for field in row] for row in _field2striped_str(self.csv)]
+        self.data = [[_str2int_or_float(field) for field in row] for row in _field2striped_str(self.data)]
 
     def replace_field(self, before_value, after_value):
         """
         before_valueのフィールドをafter_valueにする
         """
-        self.csv = [[after_value if field == before_value else field for field in row] for row in self.csv]
+        self.data = [[after_value if field == before_value else field for field in row] for row in self.data]
 
     def resub_field(self, pattern, repl):
         """
-        各フィールドをre.sub(pattern, repl)したcsvインスタンスを返す
+        各フィールドをre.sub(pattern, repl)したTwoDimArrayインスタンスを返す
             フィールドは文字列に変換してからre.sub関数で評価される
         """
-        chg_csv = self.map_field(lambda field: re.sub(pattern, repl, str(field)))
-        chg_csv.refresh_field() #re.subのために各フィールドを文字列に変換したので、元に戻す
-        chg_csv._copy_property(self)
-        return chg_csv
+        chg_tda = self.map_field(lambda field: re.sub(pattern, repl, str(field)))
+        chg_tda.refresh_field() #re.subのために各フィールドを文字列に変換したので、元に戻す
+        chg_tda._copy_property(self)
+        return chg_tda
 
     def research_field(self, pattern):
         """
-        各フィールドをre.search(pattern, field)してヒットしたfield値以外は空('')にしたcsvインスタンスを返す
+        各フィールドをre.search(pattern, field)してヒットしたfield値以外は空('')にしたTwoDimArrayインスタンスを返す
             フィールドは文字列に変換してからre.search関数で評価される
         """
-        chg_csv = self.map_field(lambda field: field if re.search(pattern, str(field)) else '')
-        chg_csv._copy_property(self)
-        return chg_csv
+        chg_tda = self.map_field(lambda field: field if re.search(pattern, str(field)) else '')
+        chg_tda._copy_property(self)
+        return chg_tda
 
     def split_multiplelines(self, multiplelines_field):
         """
@@ -2431,7 +2522,7 @@ class csv(object):
         指定された列をコピーして返す
             col_idxはsliceも指定可能
         """
-        columns = row2column(self.csv)
+        columns = row2column(self.data)
         try:
             column = columns[col_idx]
         except IndexError:
@@ -2444,13 +2535,13 @@ class csv(object):
         指定された列の削除
             col_idxはsliceも指定可能
         """
-        columns = row2column(self.csv)
+        columns = row2column(self.data)
         try:
             del(columns[col_idx])
         except IndexError:
             pass
 
-        self.csv = row2column(columns)
+        self.data = row2column(columns)
 
     def remove_column(self, col_idx):
         """
@@ -2488,20 +2579,20 @@ class csv(object):
 
     def add_column(self, col_idx, new_column):
         """
-        列データ(new_column)をcsvデータ(self.csv)の指定インデックス(col_idx)に追加する
-            col_idxがNoneならば列データをcsvデータの最後尾に追加する
+        列データ(new_column)をTwoDimArray(self.data)の指定インデックス(col_idx)に追加する
+            col_idxがNoneならば列データをTwoDimArrayの最後尾に追加する
         """
-        columns = row2column(self.csv) #行と列の入れ替え
+        columns = row2column(self.data) #行と列の入れ替え
         columns = self._add_column(columns, col_idx, new_column)
-        self.csv = row2column(columns) #再び行と列の入れ替えをして元に戻す
+        self.data = row2column(columns) #再び行と列の入れ替えをして元に戻す
 
     def extend_columns(self, col_idx, new_columns):
         """
-        csvデータ(self.csv)を列データ(new_columns)で拡張する
+        TwoDimArray(self.data)を列データ(new_columns)で拡張する
             col_idxで指定したインデックスから拡張する
-            col_idxがNoneならばcsvデータの最後尾から拡張する
+            col_idxがNoneならばTwoDimArrayの最後尾から拡張する
         """
-        columns = row2column(self.csv) #行と列の入れ替え
+        columns = row2column(self.data) #行と列の入れ替え
 
         for idx, new_column in enumerate(new_columns):
             if col_idx is None:
@@ -2509,7 +2600,7 @@ class csv(object):
             else:
                 columns = self._add_column(columns, col_idx+idx, new_column)
 
-        self.csv = row2column(columns) #再び行と列の入れ替えをして元に戻す
+        self.data = row2column(columns) #再び行と列の入れ替えをして元に戻す
 
     def _add_column(self, columns, col_idx, new_column):
         """
@@ -2522,7 +2613,7 @@ class csv(object):
         new_column = [_str2striped_str(field) for field in new_column] #文字列のフィールドをstrip()して左右の空白削除
         new_column = [_str2int_or_float(field) for field in new_column] #intに変換できる文字列はintに、floatに変換できる文字列はfloatに変換
 
-        if col_idx <= len(columns) - 1: #col_idxがself.csvの範囲内の場合
+        if col_idx <= len(columns) - 1: #col_idxがself.dataの範囲内の場合
             #print(f'col_idx: {col_idx}, len(columns)-1: {len(columns)-1}') ###
             columns.insert(col_idx, new_column)
         else:
@@ -2537,31 +2628,31 @@ class csv(object):
 
     def arrange_columns(self, *col_idxs):
         """
-        列のインデックスの並び(col_idxs)の通りにcsvデータを再構築したcsvインスタンスを返す
+        列のインデックスの並び(col_idxs)の通りにTwoDimArrayを再構築したTwoDimArrayインスタンスを返す
         """
-        columns = row2column(self.csv)
-        csv_data = row2column([columns[col_idx] for col_idx in col_idxs if col_idx <= len(columns)-1])
-        if not csv_data:
-            csv_data = [['']]
+        columns = row2column(self.data)
+        tda_data = row2column([columns[col_idx] for col_idx in col_idxs if col_idx <= len(columns)-1])
+        if not tda_data:
+            tda_data = [['']]
 
-        new_csv = csv(csv_data)
-        new_csv._copy_property(self)
-        return new_csv
+        new_tda = TwoDimArray(tda_data)
+        new_tda._copy_property(self)
+        return new_tda
         
     #------------------------------
     # row操作
     #------------------------------
     def arrange_rows(self, *row_idxs):
         """
-        行のインデックスの並び(row_idxs)の通りにcsvデータを再構築したcsvインスタンスを返す
+        行のインデックスの並び(row_idxs)の通りにTwoDimArrayを再構築したTwoDimArrayインスタンスを返す
         """
-        csv_data = [self.csv[row_idx] for row_idx in row_idxs if row_idx <= len(self.csv)-1]
-        if not csv_data:
-            csv_data = [['']]
+        tda_data = [self.data[row_idx] for row_idx in row_idxs if row_idx <= len(self.data)-1]
+        if not tda_data:
+            tda_data = [['']]
 
-        new_csv = csv(csv_data)
-        new_csv._copy_property(self)
-        return new_csv
+        new_tda = TwoDimArray(tda_data)
+        new_tda._copy_property(self)
+        return new_tda
 
     #------------------------------
     # 高度な操作
@@ -2571,9 +2662,9 @@ class csv(object):
         """
         行範囲[row_start_idx:row_end_idx]の各行をsortする
         """
-        self.csv = [*self.csv[0:row_start_idx],
-                    *sorted(self.csv[row_start_idx:row_end_idx], key=key, reverse=reverse),
-                    *([] if row_end_idx is None else self.csv[row_end_idx:])
+        self.data = [*self.data[0:row_start_idx],
+                    *sorted(self.data[row_start_idx:row_end_idx], key=key, reverse=reverse),
+                    *([] if row_end_idx is None else self.data[row_end_idx:])
                     ]
 
     @set_row_range
@@ -2581,11 +2672,11 @@ class csv(object):
         """
         行範囲[row_start_idx:row_end_idx]内の行列で欠けている箇所をfillvalueで埋める
         """
-        csv_data = [*self.csv[0:row_start_idx],
-                    *[list(row) for row in zip_longest(*zip_longest(*self.csv[row_start_idx:row_end_idx], fillvalue=fillvalue))],
-                    *([] if row_end_idx is None else self.csv[row_end_idx:])
+        tda_data = [*self.data[0:row_start_idx],
+                    *[list(row) for row in zip_longest(*zip_longest(*self.data[row_start_idx:row_end_idx], fillvalue=fillvalue))],
+                    *([] if row_end_idx is None else self.data[row_end_idx:])
                     ]
-        self.csv = csv_data
+        self.data = tda_data
 
     def trim(self, row=True, col=True):
         """
@@ -2593,75 +2684,75 @@ class csv(object):
             文字列のフィールドはstripしてから空判定する
         """
         if row:
-            not_empty_row_idx = [row_idx for row_idx, row in enumerate(self.csv) if any([field.strip() if isinstance(field, str) else field for field in row])]
-            if len(not_empty_row_idx) != len(self.csv):
-                new_csv = self.arrange_rows(*not_empty_row_idx)
-                self.csv = new_csv.csv
+            not_empty_row_idx = [row_idx for row_idx, row in enumerate(self.data) if any([field.strip() if isinstance(field, str) else field for field in row])]
+            if len(not_empty_row_idx) != len(self.data):
+                new_tda = self.arrange_rows(*not_empty_row_idx)
+                self.data = new_tda.data
 
         if col:
-            columns = row2column(self.csv)
+            columns = row2column(self.data)
             not_empty_col_idx = [col_idx for col_idx, col in enumerate(columns) if any([field.strip() if isinstance(field, str) else field for field in col])]
             if len(not_empty_col_idx) != len(columns):
-                new_csv = self.arrange_columns(*not_empty_col_idx)
-                self.csv = new_csv.csv
+                new_tda = self.arrange_columns(*not_empty_col_idx)
+                self.data = new_tda.data
 
     @set_row_range
     def filter(self, func=None, row_start_idx=0, row_end_idx=None):
         """
-        行範囲[row_start_idx:row_end_idx]の各行をfilterしたcsvインスタンスを返す
+        行範囲[row_start_idx:row_end_idx]の各行をfilterしたTwoDimArrayインスタンスを返す
         """
-        csv_data = [*self.csv[0:row_start_idx],
-                    *filter(func, self.csv[row_start_idx:row_end_idx]),
-                    *([] if row_end_idx is None else self.csv[row_end_idx:])
+        tda_data = [*self.data[0:row_start_idx],
+                    *filter(func, self.data[row_start_idx:row_end_idx]),
+                    *([] if row_end_idx is None else self.data[row_end_idx:])
                     ]
-        new_csv = csv(csv_data)
-        new_csv._copy_property(self)
-        return new_csv
+        new_tda = TwoDimArray(tda_data)
+        new_tda._copy_property(self)
+        return new_tda
 
     @set_row_range
     def map_field(self, func=None, row_start_idx=0, row_end_idx=None):
         """
-        行範囲[row_start_idx:row_end_idx]の各フィールド値をmapしたcsvインスタンスを返す
+        行範囲[row_start_idx:row_end_idx]の各フィールド値をmapしたTwoDimArrayインスタンスを返す
             funcの引数には各フィールド値が渡される
             funcがエラーになる場合は空文字('')を返す
         """
         if self.multiple_lines:
-            func = wrapper.support_multiplelines(func, self.multiple_lines_delimiter)
-        func = wrapper.non_error(func) #func処理でエラーなら''を返すラッパー関数
+            func = Wrapper.support_multiplelines(func, self.multiple_lines_delimiter)
+        func = Wrapper.non_error(func) #func処理でエラーなら''を返すラッパー関数
 
-        csv_data = [*self.csv[0:row_start_idx],
-                    *[list(map(func, row)) for row in self.csv[row_start_idx:row_end_idx]],
-                    *([] if row_end_idx is None else self.csv[row_end_idx:])
+        tda_data = [*self.data[0:row_start_idx],
+                    *[list(map(func, row)) for row in self.data[row_start_idx:row_end_idx]],
+                    *([] if row_end_idx is None else self.data[row_end_idx:])
                     ]
-        new_csv = csv(csv_data)
-        new_csv._copy_property(self)
-        return new_csv
+        new_tda = TwoDimArray(tda_data)
+        new_tda._copy_property(self)
+        return new_tda
 
     @set_row_range
     def map_rows(self, func=None, row_start_idx=0, row_end_idx=None):
         """
-        self.csvの各行をmapした配列を返す
+        self.dataの各行をmapした配列を返す
             funcがエラーになる場合は空文字('')を返す
         """
         if self.multiple_lines:
-            func = wrapper._arg_of_flatten_multiplelines_list(func, self.multiple_lines_delimiter)
-        func = wrapper.non_error(func)
+            func = Wrapper._arg_of_flatten_multiplelines_list(func, self.multiple_lines_delimiter)
+        func = Wrapper.non_error(func)
 
-        top = ['' for _ in range(len(self.csv[0:row_start_idx]))]
-        bottom = [] if row_end_idx is None else ['' for _ in range(len(self.csv[row_end_idx:]))]
-        return top + list(map(func, self.csv[row_start_idx:row_end_idx])) + bottom
+        top = ['' for _ in range(len(self.data[0:row_start_idx]))]
+        bottom = [] if row_end_idx is None else ['' for _ in range(len(self.data[row_end_idx:]))]
+        return top + list(map(func, self.data[row_start_idx:row_end_idx])) + bottom
 
     @set_row_range
     def map_columns(self, func=None, row_start_idx=0, row_end_idx=None):
         """
-        self.csvの各列をmapした配列を返す
+        self.dataの各列をmapした配列を返す
             funcがエラーになる場合は空文字('')を返す
         """
         if self.multiple_lines:
-            func = wrapper._arg_of_flatten_multiplelines_list(func, self.multiple_lines_delimiter)
-        func = wrapper.non_error(func)
+            func = Wrapper._arg_of_flatten_multiplelines_list(func, self.multiple_lines_delimiter)
+        func = Wrapper.non_error(func)
 
-        return list(map(func, row2column(self.csv[row_start_idx:row_end_idx])))
+        return list(map(func, row2column(self.data[row_start_idx:row_end_idx])))
 
     @set_row_range
     def cal_columns(self, col_idxs, func=None, row_start_idx=0, row_end_idx=None):
@@ -2671,8 +2762,8 @@ class csv(object):
             funcがエラーになる場合は空文字('')を返す
         """
         if self.multiple_lines:
-            func = wrapper.support_multiplelines(func, self.multiple_lines_delimiter)
-        func = wrapper.non_error(func) #func処理でエラーなら''を返すラッパー関数
+            func = Wrapper.support_multiplelines(func, self.multiple_lines_delimiter)
+        func = Wrapper.non_error(func) #func処理でエラーなら''を返すラッパー関数
 
         if not hasattr(col_idxs, '__iter__'): #指定インデックスが1つのみの場合
             col_idxs = (col_idxs,)
@@ -2680,73 +2771,73 @@ class csv(object):
         columns = [self.get_column(col_idx)[row_start_idx:row_end_idx] for col_idx in col_idxs]
         args = row2column(columns)
 
-        top = ['' for _ in range(len(self.csv[0:row_start_idx]))]
-        bottom = [] if row_end_idx is None else ['' for _ in range(len(self.csv[row_end_idx:]))]
+        top = ['' for _ in range(len(self.data[0:row_start_idx]))]
+        bottom = [] if row_end_idx is None else ['' for _ in range(len(self.data[row_end_idx:]))]
         return top + [func(*arg) for arg in args] + bottom
 
     def row2column(self):
         """
-        csvデータの行と列を入れ替える
+        TwoDimArrayの行と列を入れ替える
         """
-        self.csv = row2column(self.csv)
+        self.data = row2column(self.data)
 
-    def csv2list(self):
+    def tda2list(self):
         """
-        2次元リストのcsvデータを1次元リストに変換する
+        2次元リストのTwoDimArrayを1次元リストに変換する
         """
-        return [j for i in self.csv for j in i]
+        return [j for i in self.data for j in i]
 
     def rotate_l45(self):
         """
-        csvデータを左に45度回転させる
+        TwoDimArrayを左に45度回転させる
         """
         row_len = self._row_len()
 
         self.rotate_l90()
-        self.csv = [['']*col_idx+col for col_idx, col in enumerate(self.csv)]
+        self.data = [['']*col_idx+col for col_idx, col in enumerate(self.data)]
         self.rotate_r90()
-        [row.append('') if -row_idx+slit_idx >= 0 else row.insert(-row_idx+slit_idx, '') for row_idx, row in enumerate(self.csv)
+        [row.append('') if -row_idx+slit_idx >= 0 else row.insert(-row_idx+slit_idx, '') for row_idx, row in enumerate(self.data)
          for slit_idx in range(row_len-1)] #右斜め下にフィールド値を移動
         self.trim()
 
     def rotate_r45(self):
         """
-        csvデータを右に45度回転させる
+        TwoDimArrayを右に45度回転させる
         """
         row_len = self._row_len()
 
         self.row2column()
-        self.csv = [['']*col_idx+col for col_idx, col in enumerate(self.csv)]
+        self.data = [['']*col_idx+col for col_idx, col in enumerate(self.data)]
         self.row2column()
-        [row.insert(0, '') if row_idx-slit_idx <= 0 else row.insert(row_idx-slit_idx, '') for row_idx, row in enumerate(self.csv)
+        [row.insert(0, '') if row_idx-slit_idx <= 0 else row.insert(row_idx-slit_idx, '') for row_idx, row in enumerate(self.data)
          for slit_idx in range(row_len-1)] #左斜め下にフィールド値を移動
         self.trim()
 
     def rotate_l90(self):
         """
-        csvデータを左に90度回転させる
+        TwoDimArrayを左に90度回転させる
         """
         self.row2column()
-        self.csv = self.csv[::-1]
+        self.data = self.data[::-1]
 
     def rotate_r90(self):
         """
-        csvデータを右に90度回転させる
+        TwoDimArrayを右に90度回転させる
         """
         self.row2column()
-        self.csv = [row[::-1] for row in self.csv]
+        self.data = [row[::-1] for row in self.data]
 
     def invert_x(self):
         """
         x軸で反転
         """
-        self.csv = self.csv[::-1]
+        self.data = self.data[::-1]
 
     def invert_y(self):
         """
         y軸で反転
         """
-        self.csv = [row[::-1] for row in self.csv]
+        self.data = [row[::-1] for row in self.data]
 
     def invert_xy(self):
         """
@@ -2772,50 +2863,50 @@ class csv(object):
 
     def get_slash(self):
         """
-        斜め(スラッシュ)軸要素を新しいcsvインスタンスとして返す
+        斜め(スラッシュ)軸要素を新しいTwoDimArrayインスタンスとして返す
         """
         row_len = self._row_len()
-        csv_data = [[field if abs(field_idx+row_idx)==row_len-1 else ''  for field_idx, field in enumerate(row)]
-                    for row_idx, row in enumerate(self.csv)]
-        new_csv = csv(csv_data)
-        new_csv._copy_property(self)
-        return new_csv
+        tda_data = [[field if abs(field_idx+row_idx)==row_len-1 else ''  for field_idx, field in enumerate(row)]
+                    for row_idx, row in enumerate(self.data)]
+        new_tda = TwoDimArray(tda_data)
+        new_tda._copy_property(self)
+        return new_tda
 
     def get_bslash(self):
         """
-        斜め(バックスラッシュ)軸要素を新しいcsvインスタンスとして返す
+        斜め(バックスラッシュ)軸要素を新しいTwoDimArrayインスタンスとして返す
         """
-        csv_data = [[field if field_idx==row_idx else ''  for field_idx, field in enumerate(row)]
-                    for row_idx, row in enumerate(self.csv)]
-        new_csv = csv(csv_data)
-        new_csv._copy_property(self)
-        return new_csv
+        tda_data = [[field if field_idx==row_idx else ''  for field_idx, field in enumerate(row)]
+                    for row_idx, row in enumerate(self.data)]
+        new_tda = TwoDimArray(tda_data)
+        new_tda._copy_property(self)
+        return new_tda
 
     def get_diagonal(self):
         """
-        csvデータの対角線要素を新しいcsvインスタンスとして返す
+        TwoDimArrayの対角線要素を新しいTwoDimArrayインスタンスとして返す
         """
         return self.get_slash() + self.get_bslash()
 
     def get_slash_stripe(self):
         """
-        ストライプ(スラッシュ方向)要素を新しいcsvインスタンスとして返す
+        ストライプ(スラッシュ方向)要素を新しいTwoDimArrayインスタンスとして返す
         """
-        csv_data = [[field if (field_idx+row_idx)%2==1 else ''  for field_idx, field in enumerate(row)]
-                    for row_idx, row in enumerate(self.csv)]
-        new_csv = csv(csv_data)
-        new_csv._copy_property(self)
-        return new_csv
+        tda_data = [[field if (field_idx+row_idx)%2==1 else ''  for field_idx, field in enumerate(row)]
+                    for row_idx, row in enumerate(self.data)]
+        new_tda = TwoDimArray(tda_data)
+        new_tda._copy_property(self)
+        return new_tda
 
     def get_bslash_stripe(self):
         """
-        ストライプ(バックスラッシュ方向)要素を新しいcsvインスタンスとして返す
+        ストライプ(バックスラッシュ方向)要素を新しいTwoDimArrayインスタンスとして返す
         """
-        csv_data = [[field if (field_idx+row_idx)%2==0 else ''  for field_idx, field in enumerate(row)]
-                    for row_idx, row in enumerate(self.csv)]
-        new_csv = csv(csv_data)
-        new_csv._copy_property(self)
-        return new_csv
+        tda_data = [[field if (field_idx+row_idx)%2==0 else ''  for field_idx, field in enumerate(row)]
+                    for row_idx, row in enumerate(self.data)]
+        new_tda = TwoDimArray(tda_data)
+        new_tda._copy_property(self)
+        return new_tda
 
     #------------------------------
     # データ集計
@@ -2823,7 +2914,7 @@ class csv(object):
     @set_row_range
     def groupby(self, grouping_col_idxs, target_col_idxs=None, func=None, row_start_idx=0, row_end_idx=None):
         """
-        選択した列のフィールド値でグループ化し集計したcsvインスタンスを返す
+        選択した列のフィールド値でグループ化し集計したTwoDimArrayインスタンスを返す
             grouping_col_idxs: グループ化対象の列
             target_col_idxs: 集計対象の列(Noneならgrouping_col_idxs以外の全ての列)
             func: 集計関数(target_col_idxsを集計する関数)
@@ -2859,25 +2950,25 @@ class csv(object):
                          row_start_idx=row_start_idx, row_end_idx=row_end_idx)
         #print(group_dict) ###
 
-        func = wrapper.non_error(func) #func処理でエラーなら''を返すラッパー関数
-        arranged_csv = self.arrange_columns(*(grouping_col_idxs+target_col_idxs))
-        new_csv = csv([*arranged_csv.csv[0:row_start_idx],
-                       *[list(key)+[_str2int_or_float(func(args)) for args in zip(*value)] for key, value in group_dict.items()],
-                       *([] if row_end_idx is None else arranged_csv.csv[row_end_idx:])])
+        func = Wrapper.non_error(func) #func処理でエラーなら''を返すラッパー関数
+        arranged_tda = self.arrange_columns(*(grouping_col_idxs+target_col_idxs))
+        new_tda = TwoDimArray([*arranged_tda.data[0:row_start_idx],
+                               *[list(key)+[_str2int_or_float(func(args)) for args in zip(*value)] for key, value in group_dict.items()],
+                               *([] if row_end_idx is None else arranged_tda.data[row_end_idx:])])
 
-        new_csv._copy_property(self)
-        return new_csv
+        new_tda._copy_property(self)
+        return new_tda
 
     @set_row_range
     def cross_count(self, col_idx1, col_idx2, row_start_idx=0, row_end_idx=None, field_fmt='{count} ({percent}%)'):
         """
-        選択した2列(col_idx1, col_idx2)をクロス集計したcsvインスタンスを返す
+        選択した2列(col_idx1, col_idx2)をクロス集計したTwoDimArrayインスタンスを返す
         集計内容はカウント数とパーセント値、表示形式はfield_fmtで設定できる
-            col_idx1: クロス集計するcsvデータの行(header)となる
-            col_idx2: クロス集計するcsvデータの列(左端列)となる
+            col_idx1: クロス集計するTwoDimArrayの行(header)となる
+            col_idx2: クロス集計するTwoDimArrayの列(左端列)となる
         """
-        target_csv = self.arrange_columns(col_idx1, col_idx2)
-        counter = Counter([tuple(row) for row in target_csv.csv[row_start_idx:row_end_idx]])
+        target_tda = self.arrange_columns(col_idx1, col_idx2)
+        counter = Counter([tuple(row) for row in target_tda.data[row_start_idx:row_end_idx]])
         total_num = sum(counter.values())
 
         rows, cols = zip(*counter.keys())
@@ -2889,33 +2980,33 @@ class csv(object):
             percent = f'{count/total_num*100:.0f}'
             return _chg_int(field_fmt.format(count=count, percent=percent))
 
-        new_csv = csv([rows] + [[get_field((row, col)) for row in rows] for col in cols])
-        new_csv.add_column(0, [''] + cols) #rowsを追加した分ブランク['']を追加
+        new_tda = TwoDimArray([rows] + [[get_field((row, col)) for row in rows] for col in cols])
+        new_tda.add_column(0, [''] + cols) #rowsを追加した分ブランク['']を追加
 
-        new_csv._copy_property(self)
-        return new_csv
+        new_tda._copy_property(self)
+        return new_tda
 
     @set_row_range
     def describe(self, func_lst=(len, max, min, sum, mean, median, variance, stdev), row_start_idx=0, row_end_idx=None):
         """
-        func_lstに設定した各集計関数で各列を集計したcsvインスタンスを返す
+        func_lstに設定した各集計関数で各列を集計したTwoDimArrayインスタンスを返す
             集計関数には列データの内、数字のデータのみが渡る
         """
         if self.header_idx is None:
             header = []
         else:
-            header = [[''] + self.csv[self.header_idx]]
+            header = [[''] + self.data[self.header_idx]]
 
-        new_csv = csv(header + [[func.__name__] + self.map_columns(wrapper.arg_of_numlist(func)) for func in func_lst])
-        new_csv._copy_property(self)
-        return new_csv
+        new_tda = TwoDimArray(header + [[func.__name__] + self.map_columns(Wrapper.arg_of_numlist(func)) for func in func_lst])
+        new_tda._copy_property(self)
+        return new_tda
 
     #------------------------------
     # 枠
     #------------------------------
     def wrap_border(self, border_pattern=None, header_aligns=None, aligns=None, widths=None):
         """
-        self.csvを枠で囲んだcsvインスタンスを返す
+        self.dataを枠で囲んだTwoDimArrayインスタンスを返す
             ・border_pattern: 枠パターン(border_patternsの中から選択)
 
             各列の書式指定を個別に指定できる:
@@ -2932,27 +3023,27 @@ class csv(object):
 
         if p is None:
             return
-        p_csv = csv([[char for char in row] for row in p.strip('\n').split('\n')]) #枠パターンを参照するcsvデータ
-        p_csv._display_delimiter = '' #枠の表示が崩れないように表示用デリミタを空にする(デバッグ用)
-        #p_csv.print() ###
+        p_tda = TwoDimArray([[char for char in row] for row in p.strip('\n').split('\n')]) #枠パターンを参照するTwoDimArray
+        p_tda._display_delimiter = '' #枠の表示が崩れないように表示用デリミタを空にする(デバッグ用)
+        #p_tda.print() ###
 
-        #csvデータをコピー & データに穴があれば埋める
-        columns = row2column(self.csv)
+        #TwoDimArrayをコピー & データに穴があれば埋める
+        columns = row2column(self.data)
         data = row2column(columns)
-        d_csv = csv(data)
-        d_csv._copy_property(self)
+        d_tda = TwoDimArray(data)
+        d_tda._copy_property(self)
 
-        #枠パターンの行数を増減(d_csvの行が入るよう)
-        if p_csv._row_len()//2 == d_csv._row_len(): #同じ大きさ
+        #枠パターンの行数を増減(d_tdaの行が入るよう)
+        if p_tda._row_len()//2 == d_tda._row_len(): #同じ大きさ
             pass
-        elif p_csv._row_len()//2 > d_csv._row_len(): #d_csvが枠パターンより小さい
-            del(p_csv.csv[d_csv._row_len()*2: -1])
-        else: #d_csvが枠パターンより大きい
-            p_columns = row2column(p_csv.csv)
-            row_increase = d_csv._row_len() - p_csv._row_len()//2
-            p_center = {'row': p_csv._row_center(), 'col': p_csv._col_center()} #初期値(行を増加させる前の値を確保)
+        elif p_tda._row_len()//2 > d_tda._row_len(): #d_tdaが枠パターンより小さい
+            del(p_tda.data[d_tda._row_len()*2: -1])
+        else: #d_tdaが枠パターンより大きい
+            p_columns = row2column(p_tda.data)
+            row_increase = d_tda._row_len() - p_tda._row_len()//2
+            p_center = {'row': p_tda._row_center(), 'col': p_tda._col_center()} #初期値(行を増加させる前の値を確保)
             #print(f'row_increase: {row_increase}') ###
-            for col_idx in range(p_csv._col_len()):
+            for col_idx in range(p_tda._col_len()):
                 L = p_columns[col_idx][p_center['row']-1: p_center['row']+1][::-1]
                 L = L*(row_increase//2 + row_increase%2)
                 R = p_columns[col_idx][p_center['row']: p_center['row']+2][::-1]
@@ -2960,62 +3051,62 @@ class csv(object):
                 #print(f'row: L:{L}, R:{R}') ###
                 C = L + [p_columns[col_idx][p_center['row']]] + R
                 p_columns[col_idx] = p_columns[col_idx][:p_center['row']] + C + p_columns[col_idx][p_center['row']+1:]
-            p_csv.csv = row2column(p_columns)
-        #p_csv.print() ###
-        #print(f'p_csv len 2: {p_csv._row_len()}, {p_csv._col_len()}') ###
+            p_tda.data = row2column(p_columns)
+        #p_tda.print() ###
+        #print(f'p_tda len 2: {p_tda._row_len()}, {p_tda._col_len()}') ###
 
-        #枠パターンの列数を増減(d_csvの列が入るよう)
-        if p_csv._col_len()//2 == d_csv._col_len(): #同じ大きさ
+        #枠パターンの列数を増減(d_tdaの列が入るよう)
+        if p_tda._col_len()//2 == d_tda._col_len(): #同じ大きさ
             pass
-        elif p_csv._col_len()//2 > d_csv._col_len(): #d_csvが枠パターンより小さい
-            p_columns = row2column(p_csv.csv)
-            del(p_columns[d_csv._col_len()*2: -1])
-            p_csv.csv = row2column(p_columns)
-        else: #d_csvが枠パターンより大きい
-            col_increase = d_csv._col_len() - p_csv._col_len()//2
-            p_center = {'row': p_csv._row_center(), 'col': p_csv._col_center()} #初期値(列を増加させる前の値を確保)
+        elif p_tda._col_len()//2 > d_tda._col_len(): #d_tdaが枠パターンより小さい
+            p_columns = row2column(p_tda.data)
+            del(p_columns[d_tda._col_len()*2: -1])
+            p_tda.data = row2column(p_columns)
+        else: #d_tdaが枠パターンより大きい
+            col_increase = d_tda._col_len() - p_tda._col_len()//2
+            p_center = {'row': p_tda._row_center(), 'col': p_tda._col_center()} #初期値(列を増加させる前の値を確保)
             #print(f'col_increase: {col_increase}') ###
-            for row_idx in range(p_csv._row_len()):
-                L = p_csv.csv[row_idx][p_center['col']-1: p_center['col']+1][::-1]
+            for row_idx in range(p_tda._row_len()):
+                L = p_tda.data[row_idx][p_center['col']-1: p_center['col']+1][::-1]
                 L = L*(col_increase//2 + col_increase%2)
-                R = p_csv.csv[row_idx][p_center['col']: p_center['col']+2][::-1]
+                R = p_tda.data[row_idx][p_center['col']: p_center['col']+2][::-1]
                 R = R*(col_increase//2)
                 #print(f'col: L:{L}, R:{R}') ###
-                C = L + [p_csv.csv[row_idx][p_center['col']]] + R
-                p_csv.csv[row_idx] = p_csv.csv[row_idx][:p_center['col']] + C + p_csv.csv[row_idx][p_center['col']+1:]
-        #p_csv.print() ###
-        #print(f'p_csv len 3: {p_csv._row_len()}, {p_csv._col_len()}') ###
+                C = L + [p_tda.data[row_idx][p_center['col']]] + R
+                p_tda.data[row_idx] = p_tda.data[row_idx][:p_center['col']] + C + p_tda.data[row_idx][p_center['col']+1:]
+        #p_tda.print() ###
+        #print(f'p_tda len 3: {p_tda._row_len()}, {p_tda._col_len()}') ###
 
         #枠のグループ化(隣接するフィールド値が同じならば、その境界の枠をスペースにする)
         if self.border_grouping:
             #隣接する各フィールド値が同じ値か否かの情報生成
-            col_diff = [[field != next_field for field, next_field in zip(row[:-1], row[1:])] for row in d_csv.csv]
+            col_diff = [[field != next_field for field, next_field in zip(row[:-1], row[1:])] for row in d_tda.data]
             row_diff = [[field != next_field for field, next_field in zip(col[:-1], col[1:])] for col in columns]
             row_diff = row2column(row_diff)
             #print(f'col_diff: {repr(col_diff)}') ###
             #print(f'row_diff: {repr(row_diff)}') ###
-            #if col_diff and col_diff[0]: col_diff_csv = csv(col_diff); print('col_diff:\n'); col_diff_csv.print() ###
-            #if row_diff and row_diff[0]: row_diff_csv = csv(row_diff); print('row_diff:\n'); row_diff_csv.print() ###
+            #if col_diff and col_diff[0]: col_diff_tda = TwoDimArray(col_diff); print('col_diff:\n'); col_diff_tda.print() ###
+            #if row_diff and row_diff[0]: row_diff_tda = TwoDimArray(row_diff); print('row_diff:\n'); row_diff_tda.print() ###
 
             for row_idx, row_data in enumerate(col_diff):
                 for idx, diff in enumerate(row_data):
                     if not diff:
-                        p_csv.csv[row_idx*2+1][idx*2+2] = ' '
+                        p_tda.data[row_idx*2+1][idx*2+2] = ' '
 
             for row_idx, row_data in enumerate(row_diff):
                 for idx, diff in enumerate(row_data):
                     if not diff:
-                        p_csv.csv[row_idx*2+2][idx*2+1] = ' '
-            #p_csv.print() ###
+                        p_tda.data[row_idx*2+2][idx*2+1] = ' '
+            #p_tda.print() ###
 
         #multiple-lines
         if self.multiple_lines:
-            new_d_csv, new_p_csv = d_csv._extend_multiple_lines(p_csv)
-            d_csv = d_csv if new_d_csv is None else new_d_csv
-            p_csv = p_csv if new_p_csv is None else new_p_csv
-            columns = row2column(d_csv.csv)
-            #d_csv.print() ###
-            #p_csv.print() ###
+            new_d_tda, new_p_tda = d_tda._extend_multiple_lines(p_tda)
+            d_tda = d_tda if new_d_tda is None else new_d_tda
+            p_tda = p_tda if new_p_tda is None else new_p_tda
+            columns = row2column(d_tda.data)
+            #d_tda.print() ###
+            #p_tda.print() ###
 
         #alignとwidthを適用した文字列生成
         #width設定
@@ -3035,60 +3126,73 @@ class csv(object):
         #print(f'col_max_widths: {col_max_widths}') ###
         widths = dict([(i, w) for i,w in enumerate(col_max_widths)])
 
-        d_csv._display_delimiter = ','
-        fields_str = d_csv._fields_string_format(header_aligns=header_aligns, aligns=aligns, widths=widths)
-        d_csv = csv([[field for field in row] for row in fields_str]) #csvデータ化(alignとwidth情報を消さないように各フィールドはstripしない)
-        #d_csv.print() ###
+        d_tda._display_delimiter = ','
+        fields_str = d_tda._fields_string_format(header_aligns=header_aligns, aligns=aligns, widths=widths)
+        d_tda = TwoDimArray([[field for field in row] for row in fields_str]) #TwoDimArray化(alignとwidth情報を消さないように各フィールドはstripしない)
+        #d_tda.print() ###
 
-        #p_csvにd_csvの値を入れる
-        for row_idx, row_data in enumerate(p_csv.csv):
+        #p_tdaにd_tdaの値を入れる
+        for row_idx, row_data in enumerate(p_tda.data):
             for idx, p_field in enumerate(row_data):
                 if idx % 2 == 1:
                     if row_idx % 2 == 0:
                         col_max_width = col_max_widths[idx//2]
                         if _is_em(p_field):
-                            p_csv.csv[row_idx][idx] = p_field * (col_max_width//2) #各列の文字幅に合うように枠の数を調整
+                            p_tda.data[row_idx][idx] = p_field * (col_max_width//2) #各列の文字幅に合うように枠の数を調整
                         else:
-                            p_csv.csv[row_idx][idx] = p_field * col_max_width #各列の文字幅に合うように枠の数を調整
+                            p_tda.data[row_idx][idx] = p_field * col_max_width #各列の文字幅に合うように枠の数を調整
                     else:
-                        p_csv.csv[row_idx][idx] = d_csv.csv[row_idx//2][idx//2] #p_csvにd_csvの値を入れる
+                        p_tda.data[row_idx][idx] = d_tda.data[row_idx//2][idx//2] #p_tdaにd_tdaの値を入れる
 
-        p_csv._copy_property(self)
-        p_csv._display_delimiter = '' #枠の表示が崩れないように表示用デリミタを空にする
-        p_csv.trim(row=True, col=False) #空白の枠の行を削除する
-        return p_csv
+        p_tda._copy_property(self)
+        p_tda._display_delimiter = '' #枠の表示が崩れないように表示用デリミタを空にする
+        p_tda.trim(row=True, col=False) #空白の枠の行を削除する
+        return p_tda
 
 #------------------------------
 # 公開関数
 #------------------------------
 def load(csv_file, sep=',', encoding=None):
     """
-    csvファイル(csv_file)からcsvデータを読み出す
+    csvファイル(csv_file)からTwoDimArrayを作成
+        sep: セパレータは正規表現も指定可能
     """
     with open(csv_file, encoding=encoding) as f:
-        return _file_obj2csv(f, sep=sep)
+        return _file_obj2tda(f, sep=sep)
 
-def str2csv(string, sep=','):
+def csv2tda(string, sep=','):
     """
-    文字列をcsvデータに変換する
+    csvの文字列をTwoDimArrayに変換する
+        sep: セパレータは正規表現も指定可能
     """
-    return _file_obj2csv(io.StringIO(string), sep=sep)
+    return _file_obj2tda(io.StringIO(string), sep=sep)
 
-def list2csv(lst, col_num):
+def df2tda(df, index=False, **kwargs):
     """
-    1次元リストを2次元リストのcsvデータに変換する
+    pandasのDataFrameをTwoDimArrayに変換する
     """
-    return csv([lst[i:i+col_num] for i in range(len(lst))[::col_num]])
+    if hasattr(df, 'to_csv') and inspect.ismethod(df.to_csv):
+        try:
+            csv = df.to_csv(index=index, **kwargs)
+        except:
+            return
+    return csv2tda(csv)
 
-def dict2csv(dct):
+def list2tda(lst, col_num):
     """
-    辞書をcsvデータに変換する
+    1次元リストを2次元リストのTwoDimArrayに変換する
+    """
+    return TwoDimArray([lst[i:i+col_num] for i in range(len(lst))[::col_num]])
+
+def dict2tda(dct):
+    """
+    辞書をTwoDimArrayに変換する
         辞書の各アイテムは列とする
     """
-    new_csv = csv([[key]+list(value) if hasattr(value, '__iter__') and not isinstance(value, str) else [key]+[value]
-                   for key, value in dct.items()])
-    new_csv.row2column()
-    return new_csv
+    new_tda = TwoDimArray([[key]+list(value) if hasattr(value, '__iter__') and not isinstance(value, str) else [key]+[value]
+                          for key, value in dct.items()])
+    new_tda.row2column()
+    return new_tda
 
 def str2list(string):
     """
@@ -3103,15 +3207,15 @@ def list2str(lst):
     """
     return ', '.join([str(i) for i in lst])
 
-def row2column(csv_data):
+def row2column(tda_data):
     """
     行と列を入れ替える
     """
-    return [list(row) for row in zip_longest(*csv_data, fillvalue='')] #zip_longestによってタプルになった要素をリストに戻す
+    return [list(row) for row in zip_longest(*tda_data, fillvalue='')] #zip_longestによってタプルになった要素をリストに戻す
 
 def chk_border():
     """
-    csvデータを囲む枠のパターン(border_patterns)を表示する
+    TwoDimArrayを囲む枠のパターン(border_patterns)を表示する
     """
     for key, pattern in border_patterns.items():
         print(f'border_pattern: {repr(key)}\n{pattern}\n')
@@ -3119,19 +3223,20 @@ def chk_border():
 #------------------------------
 # 非公開関数
 #------------------------------
-def _file_obj2csv(fileObj, sep=','):
+def _file_obj2tda(fileObj, sep=','):
     """
-    ファイルオブジェクトからcsvデータを読み出す
+    ファイルオブジェクトからTwoDimArrayを読み出す
+        sep: セパレータは正規表現も指定可能
     """
     re_sep = re.compile(sep)
-    csv_data = [[field.strip() for field in re_sep.split(row.strip())] for row in fileObj] #フィールドをsepで区切り、各フィールドをstrip()
-    csv_data = _str_field2int_or_float(csv_data) #intに変換できる文字列はintに、floatに変換できる文字列はfloatに変換
-    csv_instance = csv(csv_data)
+    tda_data = [[field.strip() for field in re_sep.split(row.strip())] for row in fileObj] #フィールドをsepで区切り、各フィールドをstrip()
+    tda_data = _str_field2int_or_float(tda_data) #intに変換できる文字列はintに、floatに変換できる文字列はfloatに変換
+    tda = TwoDimArray(tda_data)
     if hasattr(fileObj, 'name'): #ファイルからデータを読み込んだ場合はファイル名が取得できる
-        csv_instance.name = fileObj.name
+        tda.name = fileObj.name
     else:
-        csv_instance.name = ''
-    return csv_instance
+        tda.name = ''
+    return tda
 
 #文字幅関係------------------------------
 def _max_widths(columns, grouping_opt=False, precision=6):
@@ -3182,9 +3287,9 @@ def _is_em(char):
     return False
 
 #フィールド変換------------------------------
-def _field2str(csv_data, grouping_opt=False, precision=6):
+def _field2str(tda_data, grouping_opt=False, precision=6):
     """
-    csvのフィールドを全て文字列に変える
+    TwoDimArrayのフィールドを全て文字列に変える
         grouping_opt: 数字の区切り文字アンダースコアの有無
         precision: floatの精度
     """
@@ -3193,19 +3298,19 @@ def _field2str(csv_data, grouping_opt=False, precision=6):
         grouping_option = '_'
 
     return [[f'{field:{grouping_option}}' if isinstance(field, int) else f'{field:{grouping_option}.{precision}f}' if isinstance(field, float) else str(field) for field in row]
-            for row in csv_data]
+            for row in tda_data]
 
-def _field2striped_str(csv_data):
+def _field2striped_str(tda_data):
     """
-    csvのフィールドを全てstripした文字列に変える
+    TwoDimArrayのフィールドを全てstripした文字列に変える
     """
-    return [[_chg_striped_str(field) for field in row] for row in csv_data]
+    return [[_chg_striped_str(field) for field in row] for row in tda_data]
 
-def _str_field2int_or_float(csv_data):
+def _str_field2int_or_float(tda_data):
     """
-    csvのフィールドでintに変換できる文字列はintに、floatに変換できる文字列はfloatに変換
+    TwoDimArrayのフィールドでintに変換できる文字列はintに、floatに変換できる文字列はfloatに変換
     """
-    return [[_str2int_or_float(field) for field in row] for row in csv_data]
+    return [[_str2int_or_float(field) for field in row] for row in tda_data]
 
 #文字列変換------------------------------
 def _str2striped_str(string):
