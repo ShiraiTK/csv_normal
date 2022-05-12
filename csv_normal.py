@@ -1344,10 +1344,37 @@
 #       
 #       
 #----------------------------------------------------------------------------------------------------
+#       #numpyのndarrayをTwoDimArrayに変換
+#       #
+#       >>>import numpy as np
+#       >>>nd1 = np.array([1,2,3,4,5,6,7,8])
+#       >>>csv.nd2tda(nd1).print2()
+#       +--+--+--+--+--+--+--+--+
+#       | 1| 2| 3| 4| 5| 6| 7| 8|
+#       +--+--+--+--+--+--+--+--+
+#       
+#       >>>nd2 = np.array([[1,2,3,4],[5,6,7,8]])
+#       >>>csv.nd2tda(nd2).print2()
+#       +--+--+--+--+
+#       | 1| 2| 3| 4|
+#       +--+--+--+--+
+#       | 5| 6| 7| 8|
+#       +--+--+--+--+
+#       
+#       >>>nd3 = np.array([[[1,2],[3,4]],[[5,6],[7,8]]])
+#       >>>csv.nd2tda(nd3).print2()
+#       +------+------+
+#       |[1, 2]|[3, 4]|
+#       +------+------+
+#       |[5, 6]|[7, 8]|
+#       +------+------+
+#       
+#       
+#----------------------------------------------------------------------------------------------------
 __all__ = ['TwoDimArray', 'PrintContextManager', 'Wrapper', 'Magic', #class
-           'load', 'csv2tda', 'df2tda', 'list2tda', 'dict2tda', 'str2list', 'list2str', 'row2column', 'chk_border', #public function
+           'load', 'csv2tda', 'nd2tda', 'df2tda', 'list2tda', 'dict2tda', 'str2list', 'list2str', 'row2column', 'chk_border', #public function
            ]
-__version__ = '3.3.2'
+__version__ = '3.3.3'
 __author__ = 'ShiraiTK'
 
 from collections import Counter, defaultdict
@@ -3167,16 +3194,29 @@ def csv2tda(string, sep=','):
     """
     return _file_obj2tda(io.StringIO(string), sep=sep)
 
+def nd2tda(nd):
+    """
+    numpyのndarrayをTwoDimArrayに変換する
+    """
+    if hasattr(nd, 'ndim') and hasattr(nd, 'tolist') and callable(nd.tolist):
+        try:
+            lst = nd.tolist()
+        except:
+            return
+        if nd.ndim == 1:
+            lst = [lst]
+        return TwoDimArray(lst)
+
 def df2tda(df, index=False, **kwargs):
     """
     pandasのDataFrameをTwoDimArrayに変換する
     """
-    if hasattr(df, 'to_csv') and inspect.ismethod(df.to_csv):
+    if hasattr(df, 'to_csv') and callable(df.to_csv):
         try:
             csv = df.to_csv(index=index, **kwargs)
         except:
             return
-    return csv2tda(csv)
+        return csv2tda(csv)
 
 def list2tda(lst, col_num):
     """
