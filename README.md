@@ -214,6 +214,8 @@ G   , -0.8177787733, -0.9438108092
 ```
 
 </details>
+
+#
 ## TwoDimArrayの表示方法
 <details><summary>表示の基本操作, 枠のグループ化, 枠の設定&カスタマイズ, 区切り文字</summary>
 
@@ -587,6 +589,8 @@ index, 0      , 1          , 2           , 3           , 4     , 5        , 6   
 ```
 
 </details>
+
+#
 ## TwoDimArrayの操作方法
 <details><summary>TwoDimArrayの基本操作</summary>
 
@@ -1471,6 +1475,8 @@ Michael\\nEdward\\nPalin, 1943, Actor\\nwriter\\ntelevision\\npresenter\\ncomedi
 ```
 
 </details>
+
+#
 ## その他
 <details><summary>魔方陣の作成</summary>
 
