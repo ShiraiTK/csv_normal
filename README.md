@@ -855,11 +855,11 @@ No., Name   , Height(cm), Weight(kg), BMI, Sex, Birthdate
 ```
 
 </details>
-<details><summary>fill、map_field、research_field、tda2list、counter_column, arrange_rows, arrange_columnsメソッドの説明</summary>
+<details><summary>fill, map_field, research_field, tda2list, counter_column, arrange_rows, arrange_columnsメソッドの説明</summary>
 
 ```
 #----------------------------------------------------------------------------------------------------
-# TwoDimArrayの操作方法: fill、map_field、research_field、tda2list、counter_column, arrange_rows, arrange_columnsメソッドの説明
+# TwoDimArrayの操作方法: fill, map_field, research_field, tda2list, counter_column, arrange_rows, arrange_columnsメソッドの説明
 #----------------------------------------------------------------------------------------------------
 # 2次元配列からTwoDimArray作成
 >>> import csv_normal as csv
@@ -898,7 +898,7 @@ No., Name   , Height(cm), Weight(kg), BMI, Sex, Birthdate
 1, 0, 0, 0
 
 
-# 2、4、6で構成されたフィールドだけを抽出する
+# 2, 4, 6で構成されたフィールドだけを抽出する
 >>> m3 = m2.research_field(r'[246]')
 >>> m3.print()
  ,  ,  , 
